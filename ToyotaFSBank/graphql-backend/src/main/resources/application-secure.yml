@@ -1,0 +1,9 @@
+# Activate with SPRING_PROFILES_ACTIVE=secure (in addition to the default
+# profile) once a real identity provider is available, and supply
+# OAUTH_ISSUER_URI, e.g. https://your-idp.example.com/realms/your-realm
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH_ISSUER_URI}

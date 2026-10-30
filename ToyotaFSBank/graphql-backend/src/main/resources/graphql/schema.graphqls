@@ -1,0 +1,81 @@
+type Query {
+    accounts: [Account!]!
+    account(id: ID!): Account
+    plaidItems: [PlaidItem!]!
+    plaidAccounts: [PlaidAccount!]!
+    plaidTransactions: [PlaidTransaction!]!
+}
+
+type Mutation {
+    createAccount(input: AccountInput!): Account!
+    updateAccount(id: ID!, input: AccountInput!): Account!
+    deleteAccount(id: ID!): Boolean!
+
+    createPlaidLinkToken: String!
+    exchangePlaidPublicToken(input: ExchangePublicTokenInput!): PlaidItem!
+    unlinkPlaidItem(itemId: ID!): Boolean!
+}
+
+enum AccountType {
+    CHECKING
+    SAVINGS
+    AUTO_LOAN
+}
+
+type Account {
+    id: ID!
+    accountNumber: String!
+    ownerName: String!
+    accountType: AccountType!
+    balance: Float!
+    createdAt: String!
+    updatedAt: String!
+}
+
+input AccountInput {
+    ownerName: String!
+    accountType: AccountType!
+    balance: Float!
+}
+
+"A bank/institution linked via Plaid Link. The Plaid access token is never exposed here."
+type PlaidItem {
+    itemId: ID!
+    institutionId: String
+    institutionName: String
+    linkedAt: String!
+}
+
+input ExchangePublicTokenInput {
+    publicToken: String!
+    institutionId: String
+    institutionName: String
+}
+
+type PlaidAccount {
+    itemId: ID!
+    institutionName: String
+    accountId: ID!
+    name: String!
+    officialName: String
+    mask: String
+    type: String
+    subtype: String
+    availableBalance: Float
+    currentBalance: Float
+    isoCurrencyCode: String
+}
+
+type PlaidTransaction {
+    itemId: ID!
+    institutionName: String
+    transactionId: ID!
+    accountId: ID!
+    name: String!
+    merchantName: String
+    amount: Float!
+    isoCurrencyCode: String
+    date: String!
+    pending: Boolean!
+    category: [String!]
+}

@@ -1,0 +1,19 @@
+HELP.md
+target/
+.env
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IDEs ###
+.idea
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache

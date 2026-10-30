@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: toyotafsbank-graphql
+  graphql:
+    graphiql:
+      # Boot's built-in GraphiQL page hardcodes unpkg.com CDN URLs with no
+      # override property, and unpkg has intermittent outages. We serve our
+      # own GraphiQL page at the same path from locally vendored assets
+      # instead (see GraphiqlController + static/vendor/graphiql/).
+      enabled: false
+  r2dbc:
+    url: r2dbc:h2:mem:///toyotafsbankgraphql;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+
+server:
+  port: 8082
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3002
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Plaid - get sandbox credentials from https://dashboard.plaid.com/developers/keys
+# Loaded from environment variables (see start.sh / .env), same convention as backend/.
+plaid:
+  client-id: ${PLAID_CLIENT_ID:}
+  secret: ${PLAID_SECRET:}
+  env: ${PLAID_ENV:sandbox}
+  products: ${PLAID_PRODUCTS:transactions}
+  country-codes: ${PLAID_COUNTRY_CODES:US}
+  redirect-uri: ${PLAID_REDIRECT_URI:}
