@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q2 Fiserv API Mapping</title>
+<style>
+:root{--bg:#f5f6f8;--card:#ffffff;--ink:#1b2330;--muted:#5d6878;--line:#dde2e8;--soft:#eef1f5;--accent:#1f4e8c;--accent-ink:#fff;
+--strong:#d5efdb;--strong-b:#3c8a50;--partial:#fff0bf;--partial-b:#a88600;--weak:#f8d4c6;--weak-b:#b5583a;--out:#e3e6ea;--out-b:#7d8794;--code:#f2f4f7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11151b;--card:#19202a;--ink:#e5eaf0;--muted:#99a5b3;--line:#2c3542;--soft:#202835;--accent:#7fb0ff;--accent-ink:#0d1320;
+--strong:#1e4a2b;--strong-b:#5fbf7a;--partial:#4f4318;--partial-b:#e0c04e;--weak:#5a2d21;--weak-b:#ef8d6c;--out:#2f3640;--out-b:#9aa4b0;--code:#151b23}}
+:root[data-theme="dark"]{--bg:#11151b;--card:#19202a;--ink:#e5eaf0;--muted:#99a5b3;--line:#2c3542;--soft:#202835;--accent:#7fb0ff;--accent-ink:#0d1320;
+--strong:#1e4a2b;--strong-b:#5fbf7a;--partial:#4f4318;--partial-b:#e0c04e;--weak:#5a2d21;--weak-b:#ef8d6c;--out:#2f3640;--out-b:#9aa4b0;--code:#151b23}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:1240px;margin:0 auto;padding:24px 16px 64px}
+header{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1{font-size:24px;margin:0}
+.sub{color:var(--muted);margin:4px 0 0;max-width:760px}
+.btn{font:inherit;font-size:13px;padding:6px 11px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.hdr-actions{display:flex;gap:8px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.stat b{display:block;font-size:22px}
+.stat span{color:var(--muted);font-size:12px}
+.stat.on{outline:2px solid var(--accent)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:18px 0 14px;overflow-x:auto}
+.tab{font:inherit;padding:9px 14px;border:0;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.panel{display:none}.panel.active{display:block}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:12px;position:sticky;top:0;z-index:5}
+.controls input[type=search]{flex:1 1 220px;font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink)}
+.controls select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:inherit;font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft);font-weight:600}
+.count{color:var(--muted);font-size:12px;margin-left:auto}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);background:var(--soft);white-space:nowrap;cursor:pointer;user-select:none}
+th .arr{opacity:.5;font-size:10px}
+tr.main{cursor:pointer}
+tr.main:hover td{background:var(--soft)}
+tr.main td:first-child{width:34px;color:var(--muted)}
+.req{font-weight:600}
+.req small{display:block;font-weight:400;color:var(--muted)}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+td code{background:var(--code);padding:1px 5px;border-radius:4px;word-break:break-all}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
+.f-Strong{background:var(--strong);border-color:var(--strong-b)}
+.f-Partial{background:var(--partial);border-color:var(--partial-b)}
+.f-Weak{background:var(--weak);border-color:var(--weak-b)}
+.f-Out{background:var(--out);border-color:var(--out-b)}
+.chev{display:inline-block;transition:transform .15s}
+tr.main.open .chev{transform:rotate(90deg)}
+tr.detail>td{background:var(--bg);padding:0}
+.dwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:14px}
+@media (max-width:860px){.dwrap{grid-template-columns:1fr}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:12px}
+.box h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.box ul{margin:0;padding-left:18px}
+.box li{margin:2px 0}
+.ep{display:flex;gap:8px;align-items:center;margin:5px 0;flex-wrap:wrap}
+.m{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--soft);border:1px solid var(--line)}
+.ep code{flex:1 1 auto;background:var(--code);padding:3px 6px;border-radius:4px;word-break:break-all}
+.unconf{font-size:11px;color:var(--weak-b)}
+.copy{font-size:11px;padding:2px 7px}
+pre.sample{background:var(--code);border:1px solid var(--line);border-radius:7px;padding:10px;overflow-x:auto;margin:0;white-space:pre}
+.dg{overflow-x:auto;text-align:center;min-height:60px}
+.dg svg{max-width:100%;height:auto}
+.dtabs{display:flex;gap:4px;margin-bottom:8px}
+.dtabs .chip{font-size:11px}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.legend .box p{margin:6px 0 0;color:var(--muted)}
+.ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;text-align:center}
+ol.oq li{margin:6px 0}
+.oq label{cursor:pointer}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:7px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+footer{color:var(--muted);font-size:12px;margin-top:20px}
+@media print{.controls,.tabs,.hdr-actions,.stats{display:none}.panel{display:block!important}tr.detail{display:table-row!important}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1>Q2 OLB → Fiserv API mapping</h1>
+    <p class="sub">Every requirement from both requirement sheets, matched to Fiserv Banking Hub (ESF) services on Premier. Click a row to see endpoints, fields, a sample request and its flow diagram.</p>
+  </div>
+  <div class="hdr-actions">
+    <button class="btn" id="csv">Export CSV</button>
+    <button class="btn" id="print">Print</button>
+    <button class="btn" id="theme" aria-label="Toggle theme">Theme: auto</button>
+  </div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" data-p="map" aria-selected="true">Mapping table</button>
+  <button class="tab" role="tab" data-p="ov" aria-selected="false">Architecture</button>
+  <button class="tab" role="tab" data-p="oq" aria-selected="false">Open questions</button>
+  <button class="tab" role="tab" data-p="help" aria-selected="false">How to read</button>
+</div>
+
+<section class="panel active" id="p-map">
+  <div class="controls">
+    <input type="search" id="q" placeholder="Search requirement, service, field or endpoint…" aria-label="Search">
+    <select id="grp" aria-label="Group"><option value="">All groups</option></select>
+    <div class="chips" id="fitchips"></div>
+    <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="conf"> Confirmed URLs only</label>
+    <button class="btn" id="expand">Expand all</button>
+    <button class="btn" id="collapse">Collapse all</button>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th data-k="i">#</th>
+        <th data-k="req">Requirement <span class="arr"></span></th>
+        <th data-k="group">Group <span class="arr"></span></th>
+        <th data-k="svc">Fiserv service(s) <span class="arr"></span></th>
+        <th data-k="ep">Primary endpoint</th>
+        <th data-k="delivery">Delivery <span class="arr"></span></th>
+        <th data-k="fit">Fit <span class="arr"></span></th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel" id="p-ov">
+  <div class="ov"><div class="dg" id="ovdg"></div></div>
+  <p class="sub" style="margin-top:10px">Solid lines are Banking Hub calls. Dashed grey boxes are outside Banking Hub (SSO or a separate Fiserv image system).</p>
+</section>
+
+<section class="panel" id="p-oq">
+  <div class="box"><h4>Questions to close with Fiserv and the requirements owner</h4>
+  <ol class="oq" id="oqlist"></ol>
+  <p class="sub" style="margin-top:8px">Ticks are saved in this browser only.</p></div>
+</section>
+
+<section class="panel" id="p-help">
+  <div class="legend">
+    <div class="box"><span class="badge f-Strong">Strong</span><p>A Banking Hub service covers the requirement directly; fields exist in the swagger.</p></div>
+    <div class="box"><span class="badge f-Partial">Partial</span><p>Covered in part, or depends on a choice (e.g. which transfer service) or unconfirmed path.</p></div>
+    <div class="box"><span class="badge f-Weak">Weak</span><p>No direct ESF match; needs a separate Fiserv spec (e.g. TransQuery).</p></div>
+    <div class="box"><span class="badge f-Out">Not Banking Hub</span><p>Handled by SSO or another Fiserv product (ITI Director, MSI).</p></div>
+    <div class="box"><h4>URLs</h4><p><code>{{HostName}}</code> = <code>https://bankinghub-cert.fiservapis.com/banking/efx/v1</code>. Paths with it are confirmed from the Postman collection. Paths marked <span class="unconf">unconfirmed prefix</span> come only from the swagger.</p></div>
+    <div class="box"><h4>Every call</h4><p>Bearer token from the OAuth endpoint, plus header <code>EFXHeader: {"OrganizationId":"…","TrnId":"&lt;GUID&gt;"}</code>. Reads are <code>POST …/secured</code>; updates are <code>PUT</code>.</p></div>
+    <div class="box"><h4>Sources</h4><p>ESF swagger release 11.0.0.2026.4.1, Premier Banking Hub Postman collection R2026.3.3, and two photos of the Q2 requirements sheet.</p></div>
+    <div class="box"><h4>Status</h4><p>Mapped from specs only. None of these calls has been run against cert.</p></div>
+  </div>
+</section>
+
+<footer>Built from the ESF swagger and Postman collection. Diagrams render with Mermaid (loaded from jsDelivr; needs internet).</footer>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+const DATA={"rows": [{"id": "TOKEN", "req": "Access token (prerequisite)", "src": "Collection", "group": "Platform", "component": "Banking Hub OAuth", "delivery": "Real Time API", "fit": "Strong", "detail": "Client-credentials token used as Bearer on every Banking Hub call.", "services": ["OAuth token endpoint"], "endpoints": [["POST", "https://bankinghub-cert.fiservapis.com/fts-apim/oauth2/v2", true]], "fields": ["grant_type=client_credentials", "Basic auth: API key / secret", "Response: access_token (short-lived)", "EFXHeader: OrganizationId + TrnId (GUID) only"], "notes": ["Do not add VendorId or Context.Channel to EFXHeader \u2014 it caused 1090 Invalid Value.", "Get a new token before it expires; tokens seen here lasted minutes, not hours."], "sample": "curl -X POST \"https://bankinghub-cert.fiservapis.com/fts-apim/oauth2/v2\" \\\n  -u \"$API_KEY:$API_SECRET\" \\\n  -d grant_type=client_credentials", "diagram": "sequenceDiagram\n  participant I as Integration layer\n  participant T as Token endpoint\n  participant B as Banking Hub\n  I->>T: POST oauth2/v2 client_credentials, Basic auth\n  T-->>I: access_token\n  I->>B: Any service, Bearer token + EFXHeader\n  B-->>I: Status + response record"}, {"id": "ACCTLIST", "req": "Account list", "src": "Image 2 (top row, cut off)", "group": "Account", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Partial", "detail": "Accounts for a user, filtered by account type, status and user rights.", "services": ["PartyAcctRelService", "MultiAcctService"], "endpoints": [["POST", "{{HostName}}/partyacctrelservice/partyacctrel/partyacctrel/secured", true], ["POST", "{{HostName}}/multiacctservice/acctmgmt/accounts/list/secured", true]], "fields": ["PartyKeys.PartyId (CIF)", "AcctSelCriteria", "ExcludeClosedAcctInd", "PartyAcctRelType", "IncEBankingInd"], "notes": ["Type and status filters exist on the core; 'user rights' is not a core field \u2014 Q2 applies entitlements.", "Use MultiAcct to fetch details for several accounts in one call."], "sample": "{\n  \"RecCtrlIn\": {\n    \"MaxRecLimit\": 50\n  },\n  \"PartyAcctRelSel\": {\n    \"PartyKeys\": {\n      \"PartyId\": \"<CIF>\"\n    },\n    \"ExcludeClosedAcctInd\": true\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant R as PartyAcctRelService\n  participant M as MultiAcctService\n  Q->>R: partyacctrel/secured, PartyId = CIF\n  R-->>Q: AcctKeys list with relationship types\n  Q->>M: accounts/list/secured, AcctKeys list\n  M-->>Q: Account summaries\n  Note over Q: Q2 applies user rights filter"}, {"id": "ACCTDTL", "req": "Account details", "src": "Image 2", "group": "Account", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Strong", "detail": "Account number, balance, product type/code, account status, interest rate, maturity date and related attributes (Q2 HADES: Host Account Detail Elements).", "services": ["AcctService (Get Account)", "MultiAcctService"], "endpoints": [["POST", "{{HostName}}/acctservice/acctmgmt/accounts/secured", true], ["POST", "{{HostName}}/multiacctservice/acctmgmt/accounts/list/secured", true]], "fields": ["AcctKeys.AcctId / AcctType \u2014 account number", "AcctBal[] \u2014 balances", "ProductIdent \u2014 product type/code", "AcctDtlStatus \u2014 status", "Rate / EffectiveRate \u2014 interest rate", "MaturityDt, TermToMaturity", "AvailBalMethod (request)"], "notes": ["Deposit and loan responses use DepositAcctInfo / LoanAcctInfo; field names above exist in both."], "sample": "{\n  \"AcctSel\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    }\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant A as AcctService\n  Q->>A: accounts/secured, AcctKeys\n  A-->>Q: AcctBal, ProductIdent, AcctDtlStatus, Rate, MaturityDt"}, {"id": "TRNHIST", "req": "Transaction history", "src": "Image 2", "group": "Account", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Strong", "detail": "Posted transactions with date range, description, amount, debit/credit indicator; date range passed as StartDt/EndDt per account.", "services": ["AcctTrnService"], "endpoints": [["POST", "{{HostName}}/accttranservice/acctmgmt/acctTrn/secured", true]], "fields": ["AcctKeys", "DtRange.StartDt / EndDt", "DrCrType, ChkNumRange, TrnType (filters)", "IncRunningBalanceInd", "RecCtrlIn.MaxRecLimit + Cursor (paging)", "Response: AcctTrnRec[] with amount, description, DrCr, ImageInd, TrnImageId"], "notes": ["EFXHeader Context.ClientAppName variants exist in the collection (AMS, LASDATE, LASDAYS) for special history modes."], "sample": "{\n  \"RecCtrlIn\": {\n    \"MaxRecLimit\": 100\n  },\n  \"AcctTrnSel\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    },\n    \"DtRange\": {\n      \"StartDt\": \"2026-10-01\",\n      \"EndDt\": \"2026-10-31\"\n    }\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant T as AcctTrnService\n  Q->>T: acctTrn/secured, AcctKeys + StartDt/EndDt\n  T-->>Q: AcctTrnRec page + Cursor\n  opt More records\n    Q->>T: Same request with Cursor\n    T-->>Q: Next page\n  end"}, {"id": "PARTYREL", "req": "Party-to-account relationships", "src": "Image 2", "group": "Party / Identity", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Strong", "detail": "Links individual and business parties (PartyAcctRel) to accounts, including organization/business party identity and contact information.", "services": ["PartyAcctRelService", "PartyService"], "endpoints": [["POST", "{{HostName}}/partyacctrelservice/partyacctrel/partyacctrel/secured", true], ["POST", "{{HostName}}/partyservice/parties/parties/secured", true]], "fields": ["Select by PartyKeys or AcctKeys", "PartyAcctRelType (Owner, Signer\u2026)", "IncPartyInfoInd: true \u2014 identity and contact", "PartyService: PersonPartyInfo / OrgPartyInfo, Contact, TaxIdent"], "notes": ["Party-to-party links (e.g. owner of a business) use PartyPartyRelService."], "sample": "{\n  \"RecCtrlIn\": {\n    \"MaxRecLimit\": 50\n  },\n  \"PartyAcctRelSel\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    },\n    \"IncPartyInfoInd\": true\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant R as PartyAcctRelService\n  participant P as PartyService\n  Q->>R: partyacctrel/secured, AcctKeys, IncPartyInfoInd\n  R-->>Q: Parties, PartyAcctRelType, basic party info\n  opt Full org or person detail\n    Q->>P: parties/secured, PartyId\n    P-->>Q: Names, contacts, tax data\n  end"}, {"id": "XFER", "req": "Internal fund transfers", "src": "Image 2", "group": "Money movement", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Strong", "detail": "Source/destination account numbers, amount, transfer date, and transfer detail records. Transfers external to TFS go via ACH (out of scope).", "services": ["XferService (scheduled / recurring)", "TransactionsService (immediate posting)"], "endpoints": [["POST", "{{HostName}}/xferservice/payments/transfers", true], ["POST", "{{HostName}}/xferservice/payments/transfers/secured", true], ["POST", "{{HostName}}/xferservice/payments/transferlist/secured", true], ["PUT", "{{HostName}}/xferservice/payments/transfers", true], ["POST", "{{HostName}}/transactionservice/payments/transactions", true]], "fields": ["FromAcctRef / ToAcctRef", "CurAmt", "EffDt (transfer date)", "RecurModel", "Response/list: XferId, XferStatusType, LastXferDt, NextXferDt", "TransactionsService: entries[] must balance; isValidateOnly"], "notes": ["Decide which service Q2 'transfer now' uses: XferService records, or TransactionsService posts immediately.", "Swagger path is /transfers/secured/list; the collection uses /transferlist/secured \u2014 confirm."], "sample": "{\n  \"OvrdAutoAckInd\": true,\n  \"XferInfo\": {\n    \"FromAcctRef\": {\n      \"AcctKeys\": {\n        \"AcctId\": \"<from>\",\n        \"AcctType\": \"DDA\"\n      }\n    },\n    \"ToAcctRef\": {\n      \"AcctKeys\": {\n        \"AcctId\": \"<to>\",\n        \"AcctType\": \"SDA\"\n      }\n    },\n    \"CurAmt\": {\n      \"Amt\": 25.0,\n      \"CurCode\": {\n        \"CurCodeType\": \"ISO4217-Alpha\",\n        \"CurCodeValue\": \"USD\"\n      }\n    },\n    \"EffDt\": \"2026-11-10\"\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant X as XferService\n  participant T as TransactionsService\n  alt Scheduled or recurring\n    Q->>X: POST transfers, From/To, CurAmt, EffDt, RecurModel\n    X-->>Q: XferId, XferStatus\n  else Immediate posting\n    Q->>T: POST transactions, balanced entries\n    T-->>Q: Posted, receipt id\n  end"}, {"id": "STOP", "req": "Stop payments", "src": "Image 2", "group": "Money movement", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Strong", "detail": "Account number, check number, amount, payee, and stop payment reason.", "services": ["StopChkService (checks)", "StopItemService (ACH / other items)"], "endpoints": [["POST", "{{HostName}}/stopchkservice/stophold/stopChecks", true], ["POST", "{{HostName}}/stopchkservice/stophold/stopChecks/secured", true], ["PUT", "{{HostName}}/stopchkservice/stophold/stopChecks/secured", true], ["POST", "{{HostName}}/stopitemservice/stophold/stopitem", true]], "fields": ["AcctKeys \u2014 account number", "ChkNum / ChkNumRange \u2014 check number", "CurAmt \u2014 amount", "Name \u2014 payee", "StopChkReasonCode / Desc \u2014 reason", "ExpDt, DoNotExpireInd, WaiveFeeInd", "StopItem: ACHInd, StopACHItemData"], "notes": ["PUT \u2026/secured cancels a stop.", "Reason code values are bank-configured \u2014 read them from Enum Table Service."], "sample": "{\n  \"StopChkInfo\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    },\n    \"ChkNum\": \"1042\",\n    \"CurAmt\": {\n      \"Amt\": 150.0\n    },\n    \"Name\": \"ACME LANDSCAPING\",\n    \"StopChkReasonCode\": \"<code>\"\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant S as StopChkService\n  participant I as StopItemService\n  alt Check\n    Q->>S: POST stopChecks, ChkNum, CurAmt, Name, reason\n    S-->>Q: StopChkIdent\n  else ACH or other item\n    Q->>I: POST stopitem, ACHInd, StopACHItemData\n    I-->>Q: StopItemIdent\n  end"}, {"id": "IMAGES", "req": "Check & statement image retrieval", "src": "Image 2", "group": "Images", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Partial", "detail": "Account number and transaction/item reference used to retrieve image from Fiserv.", "services": ["AcctTrnService", "DocumentService"], "endpoints": [["POST", "{{HostName}}/accttranservice/acctmgmt/acctTrn/secured", true], ["POST", "/document/secured/download", false], ["POST", "/document/secured", false], ["POST", "/document/list/secured", false], ["POST", "/document/config/secured", false]], "fields": ["AcctTrn: ImageInd, TrnImageId (front), TrnImageBackId (back), Checks.ChkNum", "Document: DocumentKeys.DocumentId", "PageRequested.View: Front | Back | FrontBack", "PageFormat: PNG, JPG, TIFF, PDF\u2026", "Statements: DocSelCriteria DocType + KeywordSel Account Number + DtRange"], "notes": ["Swagger does not state TrnImageId = DocumentId; test it.", "May overlap with ITI Director SSO \u2014 confirm which source serves images.", "DocumentService Banking Hub prefix not confirmed."], "sample": "{\n  \"DocumentSel\": {\n    \"DocumentKeys\": {\n      \"DocumentId\": \"<TrnImageId>\"\n    },\n    \"PageRequested\": [\n      {\n        \"PageNum\": 1,\n        \"PageFormat\": \"PNG\",\n        \"View\": \"FrontBack\"\n      }\n    ]\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant T as AcctTrnService\n  participant D as DocumentService\n  Q->>T: acctTrn/secured\n  T-->>Q: TrnImageId, TrnImageBackId\n  Q->>D: document/secured/download, DocumentId, View FrontBack\n  D-->>Q: Image bytes\n  opt Statement\n    Q->>D: document/list/secured, DocType + Account Number\n    D-->>Q: DocumentId list\n    Q->>D: document/secured/download, PDF\n    D-->>Q: Statement PDF\n  end"}, {"id": "CIF", "req": "User / CIF identity", "src": "Image 1 + Image 2", "group": "Party / Identity", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Strong", "detail": "Username and primary CIF; SSN/Tax ID and internal CIF used to query the correct party record on the core. CIF is the unique identifier within the Fiserv platform.", "services": ["PartyService", "eAgreementService (OLB enrollment)"], "endpoints": [["POST", "{{HostName}}/partyservice/parties/parties/secured", true], ["POST", "{{HostName}}/partyservice/parties/parties/secured/list", true], ["POST", "/EAgreement/partyKeys/partyIdent/{partyIdent}/{partyIdentType}", false]], "fields": ["CIF = PartyKeys.PartyId", "Verify: TaxIdent + TaxIdentType (SSN / EIN)", "PartyStatus.PartyStatusCode = Valid", "PartyIdentType: TaxIdent, IBId, PersonNum, MemberNum\u2026", "SSN-only search: PartyListSel.TaxIdent \u2192 PartyListRec[]"], "notes": ["Fetch by CIF, verify SSN in code. Never fall back to SSN-only when CIF fails.", "SSN-only lookups can return several parties \u2014 treat >1 as ambiguous.", "Never log SSN; keep CIF as a string."], "sample": "{\n  \"PartySel\": {\n    \"PartyKeys\": {\n      \"PartyId\": \"<CIF>\"\n    }\n  }\n}", "diagram": "flowchart TD\n  A[\"CIF + SSN from Q2\"] --> B[\"Get Party by PartyId\"]\n  B --> C{\"Valid AND TaxIdent matches?\"}\n  C -->|Yes| OK[\"Party resolved\"]\n  C -->|No| NM[\"No match\"]\n  S[\"SSN only\"] --> L[\"Get Party List by TaxIdent\"]\n  L --> F{\"Valid records left\"}\n  F -->|One| OK\n  F -->|None| NF[\"Not found\"]\n  F -->|Many| AMB[\"Ambiguous\"]"}, {"id": "HOSTUPD", "req": "Host account updates", "src": "Image 2", "group": "Account", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Partial", "detail": "Current and historical account state for modification operations.", "services": ["AcctService (Modify Account)"], "endpoints": [["POST", "{{HostName}}/acctservice/acctmgmt/accounts/secured", true], ["PUT", "{{HostName}}/acctservice/acctmgmt/accounts", true], ["PUT", "/accounts/interest/rate", false], ["PUT", "/accounts/overdraft", false], ["PUT", "/accounts/termDeposit", false], ["PUT", "/accounts/interestDeposit", false], ["PUT", "/accounts/paymentSchedule", false]], "fields": ["Current state: Get Account", "Historical state: AcctSel.EffDt (as-of date)", "Modify: PUT accounts with changed fields only", "Specialised PUTs for rate, overdraft, term deposit, payment schedule"], "notes": ["These change core records \u2014 add Q2-side approval and audit.", "A full change history is not in the swagger; EffDt only gives an as-of snapshot."], "sample": "{\n  \"AcctSel\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    },\n    \"EffDt\": \"2026-06-30\"\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant A as AcctService\n  Q->>A: accounts/secured, current state\n  A-->>Q: Account record\n  opt Historical\n    Q->>A: accounts/secured with EffDt\n    A-->>Q: As-of record\n  end\n  Q->>A: PUT accounts, changed fields\n  A-->>Q: Status"}, {"id": "DELIV", "req": "Delivery detail", "src": "Image 1 + Image 2", "group": "Delivery", "component": "Premier (Communicator Advantage / Communicator Open)", "delivery": "Real Time API", "fit": "Strong", "detail": "Real-time synchronous API calls using the Fiserv Communicator Open XML/JSON protocol, initiated by Q2 OLB on user demand.", "services": ["ePreferenceService", "AcctDocTypeRelService", "AcctService"], "endpoints": [["POST", "{{HostName}}/epreferenceservice/epreference/ePreferences/secured", true], ["POST", "/acctdoctyperel/secured", false], ["POST", "{{HostName}}/acctservice/acctmgmt/accounts/secured", true]], "fields": ["ePreference: DocType, StmtPrepCode, StmtTruncationOption, NoticeData[], EmailLink", "AcctDocTypeRel: DocType, DocTypeName, EnrollStatus", "Account: AcctStmtData.StmtDeliveryMethod, LastStmtDt, NextStmtDt"], "notes": ["Valid values for StmtDeliveryMethod / EnrollStatus are not in the swagger \u2014 use Enum Table Service.", "Collection shows error 108 (branch region mismatch) on ePreference add/update."], "sample": "{\n  \"EPreferenceSel\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    }\n  }\n}", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant R as PartyAcctRelService\n  participant E as ePreferenceService\n  participant DT as AcctDocTypeRelService\n  Q->>R: Accounts for CIF\n  R-->>Q: AcctKeys list\n  par Each account\n    Q->>E: ePreferences/secured\n    E-->>Q: DocType, NoticeData, EmailLink\n  and\n    Q->>DT: acctdoctyperel/secured\n    DT-->>Q: EnrollStatus\n  end"}, {"id": "TRNID", "req": "Transaction identifiers", "src": "Image 1", "group": "Images", "component": "ITI Director / Fiserv image system", "delivery": "SSO / query service", "fit": "Weak", "detail": "Check item image numbers and deposit transaction query numbers (TransQuery).", "services": ["AcctTrnService (check image numbers)", "Fiserv image system (TransQuery)"], "endpoints": [["POST", "{{HostName}}/accttranservice/acctmgmt/acctTrn/secured", true]], "fields": ["TrnImageId, TrnImageBackId, Checks.ChkNum", "TransQuery number \u2014 no ESF field"], "notes": ["TransQuery / tranlist is not in any of the 85 ESF swagger files.", "Ask Fiserv for the TransQuery service spec."], "sample": "{\n  \"AcctTrnSel\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    },\n    \"ChkNumRange\": {\n      \"StartChkNum\": \"1000\",\n      \"EndChkNum\": \"1100\"\n    }\n  }\n}", "diagram": "flowchart LR\n  T[\"AcctTrnService\"] -->|\"TrnImageId, ChkNum\"| C[\"Check image number\"]\n  X[\"Fiserv image system\"] -->|\"TransQuery\"| D[\"Deposit query number\"]\n  classDef out fill:#e4e6ea,stroke:#8a929c,stroke-dasharray:4 3,color:#1c2430\n  class X out"}, {"id": "TRANSQ", "req": "Session / request parameters (TransQuery \u2192 tranlist)", "src": "Image 1", "group": "Images", "component": "Fiserv image system", "delivery": "Query service", "fit": "Weak", "detail": "Base URL and query service parameters to retrieve the TransQuery number, then tranlist.", "services": ["Fiserv image query service (no ESF spec)", "Closest ESF: DocumentService config + list"], "endpoints": [["POST", "/document/config/secured", false], ["POST", "/document/list/secured", false]], "fields": ["DocumentConfig: QueryType, QueryTypeName", "DocumentList: KeywordSel, DtRange"], "notes": ["Treat as a separate integration until Fiserv confirms DocumentService covers deposit items."], "sample": "(No ESF request \u2014 TransQuery spec needed from Fiserv)", "diagram": "sequenceDiagram\n  participant I as Integration layer\n  participant X as Image query service\n  I->>X: Query with account + deposit info\n  X-->>I: TransQuery number\n  I->>X: tranlist with TransQuery number\n  X-->>I: Deposit items + image refs"}, {"id": "IMGDATA", "req": "Image data (front/back + deposit detail)", "src": "Image 1", "group": "Images", "component": "DocumentService / ITI Director", "delivery": "Real Time API or SSO", "fit": "Strong", "detail": "Front/back check images and deposit detail images returned for display in OLB.", "services": ["DocumentService"], "endpoints": [["POST", "/document/secured/download", false], ["POST", "/document/secured", false]], "fields": ["View: Front | Back | FrontBack", "PageFormat", "Download returns application/octet-stream", "Get returns PageData[].PageValue (likely base64)"], "notes": ["Deposit detail images depend on what the archive stores."], "sample": "{\n  \"DocumentSel\": {\n    \"DocumentKeys\": {\n      \"DocumentId\": \"<id>\"\n    },\n    \"PageRequested\": [\n      {\n        \"PageNum\": 1,\n        \"PageFormat\": \"JPG\",\n        \"View\": \"Back\"\n      }\n    ]\n  }\n}", "diagram": "sequenceDiagram\n  participant I as Integration layer\n  participant D as DocumentService\n  I->>D: download, View Front\n  D-->>I: Front image\n  I->>D: download, View Back\n  D-->>I: Back image"}, {"id": "SSO", "req": "Session token / SSO key", "src": "Image 1", "group": "SSO / External", "component": "Q2 \u2192 Fiserv", "delivery": "SSO", "fit": "Not Banking Hub", "detail": "Q2-generated session passed to Fiserv.", "services": ["Q2 \u2194 Fiserv SSO trust (not Banking Hub)"], "endpoints": [], "fields": ["Q2 session token", "Banking Hub itself uses OAuth client credentials, not a user session"], "notes": ["Agree the SSO format (SAML / JWT) and claims with Fiserv."], "sample": "(SSO configuration \u2014 no API request)", "diagram": "sequenceDiagram\n  actor U as User\n  participant Q as Q2 OLB\n  participant F as Fiserv vendor app\n  U->>Q: Click image or statement link\n  Q->>F: SSO with Q2 session token\n  F-->>U: Vendor page"}, {"id": "ACCTDATA", "req": "Account data (internal/external numbers, product codes, CIF, host account ID)", "src": "Image 1", "group": "Account", "component": "Premier", "delivery": "Real Time API", "fit": "Strong", "detail": "Internal/external account numbers, product/account type codes, internal and external CIF, and Host Account ID.", "services": ["AcctService", "PartyAcctRelService"], "endpoints": [["POST", "{{HostName}}/acctservice/acctmgmt/accounts/secured", true], ["POST", "{{HostName}}/partyacctrelservice/partyacctrel/partyacctrel/secured", true]], "fields": ["AcctKeys.AcctId \u2014 host account ID", "AcctIdent[]: AcctNum, AliasAcct \u2014 internal/external numbers", "ProductIdent, AcctType \u2014 product / type codes", "PartyKeys.PartyId \u2014 CIF"], "notes": ["'External CIF' has no separate swagger field \u2014 confirm what Q2 means (PartyIdent / MemberNum?)."], "sample": "{\n  \"AcctSel\": {\n    \"AcctKeys\": {\n      \"AcctId\": \"<acctId>\",\n      \"AcctType\": \"DDA\"\n    }\n  }\n}", "diagram": "flowchart LR\n  A[\"AcctService\"] --> K[\"AcctId = host account ID\"]\n  A --> N[\"AcctIdent: AcctNum, AliasAcct\"]\n  A --> P[\"ProductIdent, AcctType\"]\n  R[\"PartyAcctRelService\"] --> C[\"PartyId = CIF\"]"}, {"id": "EXTACCT", "req": "External account data (routing number, linked FI)", "src": "Image 1", "group": "Money movement", "component": "Premier / ACH", "delivery": "Real Time API", "fit": "Partial", "detail": "Account number, routing number, account type (checking/savings), and linked financial institution.", "services": ["ACHExtAcctXferService", "XferService"], "endpoints": [["POST", "/achextacctxfer", false], ["POST", "/achextacctxfer/secured", false], ["POST", "{{HostName}}/xferservice/payments/transfers", true]], "fields": ["ExtAcctXferInfo", "Routing / account number / account type"], "notes": ["ACHExtAcctXferService swagger says 'only available to Signature Core' \u2014 likely not Premier.", "Row text is cut off in the photo."], "sample": "(Confirm Premier support before building)", "diagram": "flowchart LR\n  Q[\"Q2 linked account\"] --> A{\"Core\"}\n  A -->|\"Signature\"| S[\"ACHExtAcctXferService\"]\n  A -->|\"Premier\"| X[\"XferService or ACH product\"]"}, {"id": "ITI", "req": "ITI Director \u2014 check image & deposited item", "src": "Image 2 (bottom row)", "group": "SSO / External", "component": "ITI Director", "delivery": "SSO", "fit": "Not Banking Hub", "detail": "Check images and deposited items viewed through ITI Director by SSO.", "services": ["ITI Director (SSO)"], "endpoints": [], "fields": ["Pass: account number, ChkNum / TrnImageId from AcctTrnService"], "notes": ["May replace DocumentService for images \u2014 decide one source."], "sample": "(SSO hand-off \u2014 no Banking Hub request)", "diagram": "sequenceDiagram\n  participant Q as Q2 OLB\n  participant T as AcctTrnService\n  participant D as ITI Director\n  Q->>T: acctTrn/secured\n  T-->>Q: ChkNum, TrnImageId\n  Q->>D: SSO with item reference\n  D-->>Q: Image viewer"}, {"id": "MSI", "req": "Statement images via Fiserv MSI", "src": "Image 1", "group": "SSO / External", "component": "Fiserv MSI", "delivery": "SSO", "fit": "Not Banking Hub", "detail": "SSO to Fiserv MSI vendor to retrieve statement images; minimal data passed.", "services": ["Fiserv MSI (SSO)"], "endpoints": [], "fields": ["Minimal data: account / CIF in SSO assertion"], "notes": ["DocumentService could replace MSI only if statements are stored there."], "sample": "(SSO hand-off \u2014 no Banking Hub request)", "diagram": "sequenceDiagram\n  actor U as User\n  participant Q as Q2 OLB\n  participant M as Fiserv MSI\n  U->>Q: Open statements\n  Q->>M: SSO, minimal data\n  M-->>U: Statement images"}], "overview": "flowchart LR\n  U[\"OLB user\"] --> Q2[\"Q2 OLB\"]\n  Q2 -->|\"SSO token\"| INT[\"Integration layer\"]\n  INT -->|\"OAuth\"| TOK[\"Token endpoint\"]\n  INT -->|\"Bearer + EFXHeader\"| BH[\"Banking Hub ESF\"]\n  BH --> ACC[\"Account, AcctTrn,<br/>MultiAcct, Xfer,<br/>StopChk, StopItem\"]\n  BH --> PTY[\"Party, PartyAcctRel,<br/>eAgreement\"]\n  BH --> DLV[\"ePreference,<br/>AcctDocTypeRel\"]\n  BH --> DOC[\"DocumentService\"]\n  ACC --> CORE[(\"Premier core\")]\n  PTY --> CORE\n  DLV --> CORE\n  INT -.->|\"TransQuery\"| IMG[\"Fiserv image system\"]\n  Q2 -.->|\"SSO\"| ITI[\"ITI Director\"]\n  Q2 -.->|\"SSO\"| MSI[\"Fiserv MSI\"]\n  classDef out fill:#e4e6ea,stroke:#8a929c,stroke-dasharray:4 3,color:#1c2430\n  class IMG,ITI,MSI out", "open": ["Does the TransQuery / tranlist service have its own spec?", "Is DocumentService connected to this bank's check, deposit and statement images \u2014 or do ITI Director and MSI stay the image sources?", "Banking Hub URL prefix for DocumentService, AcctDocTypeRel, ValidateAcct and eAgreement.", "Transfer path for 'transfer now': XferService or TransactionsService?", "XferService list path: swagger /transfers/secured/list vs collection /transferlist/secured.", "Does 'historical account state' need full change history, or is an as-of date (EffDt) enough?", "Valid values for StmtDeliveryMethod, EnrollStatus, NoticeOption, StopChkReasonCode, DocSelType, Operand.", "Does PartyIdentType IBId work on Premier? What is 'external CIF'?", "External account linking on Premier (ACHExtAcctXfer is Signature-only).", "Missing text in photos: top row, ends of some rows, and the Phase column."]};
+const rows=DATA.rows.map((r,i)=>({...r,i:i+1,svc:r.services.join(", "),ep:r.endpoints[0]?r.endpoints[0][1]:"—",fitKey:r.fit==="Not Banking Hub"?"Out":r.fit}));
+const FITS=["Strong","Partial","Weak","Not Banking Hub"];
+const store={get(k,d){try{const v=localStorage.getItem("q2map."+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("q2map."+k,JSON.stringify(v))}catch(e){}}};
+const state={q:"",grp:"",fits:new Set(store.get("fits",FITS)),conf:false,sort:{k:"i",dir:1},open:new Set()};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1400)}
+async function copy(t){try{await navigator.clipboard.writeText(t);toast("Copied")}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("Copied")}catch(_){toast("Copy failed")}a.remove()}}
+
+/* theme */
+const themes=["auto","light","dark"];let theme=store.get("theme","auto");
+function isDark(){return theme==="dark"||(theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches)}
+function applyTheme(){if(theme==="auto")delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;$("#theme").textContent="Theme: "+theme;
+ if(window.mermaid){mermaid.initialize({startOnLoad:false,theme:isDark()?"dark":"default",securityLevel:"strict",flowchart:{htmlLabels:true}});rerenderAll()}}
+$("#theme").onclick=()=>{theme=themes[(themes.indexOf(theme)+1)%3];store.set("theme",theme);applyTheme()};
+
+/* mermaid */
+let seq=0;
+async function renderInto(el,code){if(!window.mermaid){el.innerHTML='<p class="sub">Diagram needs internet to load Mermaid.</p><pre class="sample">'+esc(code)+'</pre>';return}
+ try{const {svg}=await mermaid.render("m"+(++seq),code);el.innerHTML=svg}catch(e){el.innerHTML='<pre class="sample">'+esc(code)+'</pre>'}}
+function rerenderAll(){document.querySelectorAll(".dg[data-id]").forEach(el=>{const r=rows.find(x=>x.id===el.dataset.id);if(r)renderInto(el,r.diagram)});const ov=$("#ovdg");if(ov.dataset.done)renderInto(ov,DATA.overview)}
+
+/* stats */
+function stats(){const s=$("#stats");s.innerHTML="";
+ const all=document.createElement("button");all.className="stat";all.innerHTML=`<b>${rows.length}</b><span>Requirements mapped</span>`;all.onclick=()=>{state.fits=new Set(FITS);syncChips();render()};s.appendChild(all);
+ FITS.forEach(f=>{const n=rows.filter(r=>r.fit===f).length;const b=document.createElement("button");b.className="stat"+(state.fits.size===1&&state.fits.has(f)?" on":"");b.innerHTML=`<b>${n}</b><span><span class="badge f-${f==="Not Banking Hub"?"Out":f}">${f}</span></span>`;b.onclick=()=>{state.fits=new Set([f]);syncChips();render()};s.appendChild(b)})}
+
+/* controls */
+[...new Set(rows.map(r=>r.group))].forEach(g=>{const o=document.createElement("option");o.value=o.textContent=g;$("#grp").appendChild(o)});
+function syncChips(){const c=$("#fitchips");c.innerHTML="";FITS.forEach(f=>{const b=document.createElement("button");b.className="chip";b.textContent=f;b.setAttribute("aria-pressed",state.fits.has(f));b.onclick=()=>{state.fits.has(f)?state.fits.delete(f):state.fits.add(f);if(!state.fits.size)state.fits=new Set(FITS);syncChips();render()};c.appendChild(b)});store.set("fits",[...state.fits]);stats()}
+$("#q").oninput=e=>{state.q=e.target.value.toLowerCase();render()};
+$("#grp").onchange=e=>{state.grp=e.target.value;render()};
+$("#conf").onchange=e=>{state.conf=e.target.checked;render()};
+$("#expand").onclick=()=>{visible().forEach(r=>state.open.add(r.id));render()};
+$("#collapse").onclick=()=>{state.open.clear();render()};
+document.querySelectorAll("th[data-k]").forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==="ep")return;state.sort={k,dir:state.sort.k===k?-state.sort.dir:1};render()});
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id==="p-"+t.dataset.p));
+ if(t.dataset.p==="ov"&&!$("#ovdg").dataset.done){$("#ovdg").dataset.done=1;renderInto($("#ovdg"),DATA.overview)}});
+
+function visible(){const q=state.q;return rows.filter(r=>state.fits.has(r.fit)&&(!state.grp||r.group===state.grp)&&(!state.conf||r.endpoints.some(e=>e[2]))&&
+ (!q||[r.req,r.detail,r.group,r.component,r.svc,r.fields.join(" "),r.notes.join(" "),r.endpoints.map(e=>e[1]).join(" ")].join(" ").toLowerCase().includes(q)))
+ .sort((a,b)=>{const k=state.sort.k;const x=k==="fit"?FITS.indexOf(a.fit):a[k],y=k==="fit"?FITS.indexOf(b.fit):b[k];return (x>y?1:x<y?-1:0)*state.sort.dir})}
+
+function detailHTML(r){
+ const eps=r.endpoints.length?r.endpoints.filter(e=>!state.conf||e[2]).map(e=>`<div class="ep"><span class="m">${e[0]}</span><code>${esc(e[1])}</code>${e[2]?"":'<span class="unconf">unconfirmed prefix</span>'}<button class="btn copy" data-copy="${esc(e[1])}">Copy</button></div>`).join(""):'<p class="sub">No Banking Hub endpoint — SSO or external.</p>';
+ return `<div class="dwrap">
+  <div>
+   <div class="box"><h4>Requirement</h4><p style="margin:0">${esc(r.detail)}</p><p class="sub" style="margin:6px 0 0">Source: ${esc(r.src)} · Component: ${esc(r.component)} · Delivery: ${esc(r.delivery)}</p></div>
+   <div class="box" style="margin-top:10px"><h4>Endpoints</h4>${eps}</div>
+   <div class="box" style="margin-top:10px"><h4>Key fields</h4><ul>${r.fields.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>
+   <div class="box" style="margin-top:10px"><h4>Notes and risks</h4><ul>${r.notes.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>
+  </div>
+  <div>
+   <div class="box"><div class="dtabs"><button class="chip" aria-pressed="true" data-v="dg">Flow diagram</button><button class="chip" aria-pressed="false" data-v="sm">Sample request</button><button class="chip" aria-pressed="false" data-v="src">Mermaid source</button></div>
+    <div data-view="dg"><div class="dg" data-id="${r.id}"><p class="sub">Rendering…</p></div></div>
+    <div data-view="sm" hidden><pre class="sample">${esc(r.sample)}</pre><div style="margin-top:6px"><button class="btn copy" data-copy="${esc(r.sample)}">Copy request</button></div></div>
+    <div data-view="src" hidden><pre class="sample">${esc(r.diagram)}</pre><div style="margin-top:6px"><button class="btn copy" data-copy="${esc(r.diagram)}">Copy Mermaid</button></div></div>
+   </div>
+  </div></div>`}
+
+function render(){
+ const v=visible(),tb=$("#tb");tb.innerHTML="";
+ document.querySelectorAll("th[data-k] .arr").forEach(a=>a.textContent="");
+ const th=document.querySelector(`th[data-k="${state.sort.k}"] .arr`);if(th)th.textContent=state.sort.dir>0?"▲":"▼";
+ if(!v.length){tb.innerHTML='<tr><td colspan="7" class="empty">No requirements match these filters.</td></tr>'}
+ v.forEach(r=>{const open=state.open.has(r.id);
+  const tr=document.createElement("tr");tr.className="main"+(open?" open":"");tr.tabIndex=0;tr.setAttribute("aria-expanded",open);
+  tr.innerHTML=`<td><span class="chev">▶</span> ${r.i}</td><td class="req">${esc(r.req)}<small>${esc(r.detail.length>90?r.detail.slice(0,90)+"…":r.detail)}</small></td><td>${esc(r.group)}</td><td>${esc(r.svc)}</td><td><code>${esc(r.ep.replace("{{HostName}}",""))}</code></td><td>${esc(r.delivery)}</td><td><span class="badge f-${r.fitKey}">${r.fit}</span></td>`;
+  const toggle=()=>{open?state.open.delete(r.id):state.open.add(r.id);render()};
+  tr.onclick=toggle;tr.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle()}};
+  tb.appendChild(tr);
+  if(open){const d=document.createElement("tr");d.className="detail";d.innerHTML=`<td colspan="7">${detailHTML(r)}</td>`;tb.appendChild(d);
+   renderInto(d.querySelector(".dg"),r.diagram);
+   d.querySelectorAll(".dtabs .chip").forEach(c=>c.onclick=()=>{d.querySelectorAll(".dtabs .chip").forEach(x=>x.setAttribute("aria-pressed",x===c));d.querySelectorAll("[data-view]").forEach(p=>p.hidden=p.dataset.view!==c.dataset.v)});}
+ });
+ tb.querySelectorAll("[data-copy]").forEach(b=>b.onclick=e=>{e.stopPropagation();copy(b.dataset.copy)});
+ $("#count").textContent=`${v.length} of ${rows.length} shown`;
+}
+
+/* open questions */
+const done=new Set(store.get("oq",[]));
+DATA.open.forEach((q,i)=>{const li=document.createElement("li");li.innerHTML=`<label><input type="checkbox" ${done.has(i)?"checked":""}> ${esc(q)}</label>`;li.querySelector("input").onchange=e=>{e.target.checked?done.add(i):done.delete(i);store.set("oq",[...done])};$("#oqlist").appendChild(li)});
+
+/* export */
+$("#csv").onclick=()=>{const h=["#","Requirement","Details","Group","Component","Delivery","Fit","Services","Endpoints","Key fields","Notes"];
+ const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+ const lines=[h.map(q).join(",")].concat(visible().map(r=>[r.i,r.req,r.detail,r.group,r.component,r.delivery,r.fit,r.svc,r.endpoints.map(e=>e[0]+" "+e[1]).join(" | "),r.fields.join(" | "),r.notes.join(" | ")].map(q).join(",")));
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv"}));a.download="Q2_Fiserv_API_Mapping.csv";a.click()};
+$("#print").onclick=()=>{state.open=new Set(rows.map(r=>r.id));render();setTimeout(()=>print(),600)};
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(theme==="auto")applyTheme()});
+applyTheme();syncChips();render();
+</script>
+</body>
+</html>
