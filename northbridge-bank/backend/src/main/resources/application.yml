@@ -1,0 +1,41 @@
+server:
+  port: ${PORT:8081}
+  error:
+    include-stacktrace: never
+    include-message: never
+
+spring:
+  application:
+    name: bank-backend
+  threads:
+    virtual:
+      enabled: true
+
+bank:
+  security:
+    # The issuer the BROWSER sees (Keycloak public URL). Must match the "iss" claim exactly.
+    issuer: ${BANK_JWT_ISSUER:http://localhost:8080/realms/northbridge}
+    # Signing keys can be fetched over the internal network.
+    jwk-set-uri: ${BANK_JWK_SET_URI:http://localhost:8080/realms/northbridge/protocol/openid-connect/certs}
+    audience: ${BANK_JWT_AUDIENCE:bank-backend}
+  limits:
+    batch-max-size: 10
+    max-transfer-amount: 10000.00
+    max-body-bytes: 65536
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  pattern:
+    level: "%5p [cid=%X{correlationId:-}] [user=%X{user:-}] [op=%X{operation:-}]"
+  level:
+    AUDIT: INFO
+    com.northbridge.bank: INFO

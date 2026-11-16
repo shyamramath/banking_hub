@@ -1,0 +1,87 @@
+# Northbridge Bank - full stack.
+#   docker compose up --build            -> everything, open http://localhost:3000
+#   docker compose up keycloak redis     -> only infra, run backend/bff/ui locally (see README)
+#
+# Network layout (defence in depth):
+#   edge     : browser-facing - ui (published :3000) and keycloak (published :8080)
+#   internal : private        - bff, backend, redis, keycloak. backend & bff are NOT published.
+
+name: northbridge-bank
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Tokens always carry iss=http://localhost:8080/realms/northbridge (the browser-facing URL),
+      # while containers can still call Keycloak at http://keycloak:8080.
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./keycloak/northbridge-realm.json:/opt/keycloak/data/import/northbridge-realm.json:ro
+    ports:
+      - "8080:8080"
+    networks: [edge, internal]
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"UP\"'"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379" # handy for local dev; remove in any shared environment
+    networks: [internal]
+
+  backend:
+    build: ./backend
+    environment:
+      BANK_JWT_ISSUER: http://localhost:8080/realms/northbridge
+      BANK_JWK_SET_URI: http://keycloak:8080/realms/northbridge/protocol/openid-connect/certs
+      BANK_JWT_AUDIENCE: bank-backend
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks: [internal]
+
+  bff:
+    build: ./bff
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      APP_ORIGIN: http://localhost:3000
+      OIDC_ISSUER: http://localhost:8080/realms/northbridge
+      OIDC_INTERNAL_ISSUER: http://keycloak:8080/realms/northbridge
+      OIDC_CLIENT_ID: bank-bff
+      OIDC_CLIENT_SECRET: bff-dev-secret-change-me
+      BACKEND_URL: http://backend:8081
+      REDIS_URL: redis://redis:6379
+      SESSION_SECRET: change-me-to-a-long-random-value-in-real-deployments
+      # Plain HTTP on localhost in this demo. Behind TLS in production: remove both lines.
+      SESSION_COOKIE_SECURE: "false"
+      SESSION_COOKIE_NAME: nb.sid
+    depends_on:
+      - redis
+      - backend
+    networks: [internal]
+
+  ui:
+    build:
+      context: ./ui
+      args:
+        BFF_URL: http://bff:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - bff
+    networks: [edge, internal]
+
+networks:
+  edge: {}
+  internal: {}

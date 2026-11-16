@@ -1,0 +1,30 @@
+{
+  "name": "northbridge-bff",
+  "version": "1.0.0",
+  "description": "Express Backend-for-Frontend: OIDC login, server-side tokens, CSRF, operation allow-list, token relay",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "connect-redis": "^7.1.1",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.4",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "openid-client": "^5.7.1",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "redis": "^4.7.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.2"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}
