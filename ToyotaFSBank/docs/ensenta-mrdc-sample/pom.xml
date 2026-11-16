@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.5</version>
+  </parent>
+
+  <groupId>com.example</groupId>
+  <artifactId>ensenta-mrdc-gateway</artifactId>
+  <version>0.1.0</version>
+  <name>Ensenta Mobile Deposit Gateway</name>
+
+  <properties>
+    <java.version>21</java.version>
+  </properties>
+
+  <dependencies>
+    <!-- REST API for the mobile app -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <!-- The mobile app's users are authenticated by your existing OAuth2/OIDC setup -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <!-- SOAP client (WebServiceTemplate) for the Ensenta SOAP/XML services -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web-services</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+    </dependency>
+    <!-- Retry for GetDepositBatchSummary polling and transient faults -->
+    <dependency>
+      <groupId>org.springframework.retry</groupId>
+      <artifactId>spring-retry</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <!--
+        Generates JAXB classes from the two Ensenta WSDLs.
+        Download "EPS Ensenta Mobile API WSDL" from
+        https://api.payments.jackhenry.com/developer/downloads/list
+        and save the SSO and Deposit WSDLs into src/main/resources/wsdl/.
+        Generated packages:
+          com.example.ensenta.gen.sso      (PartnerSSORequest3: StartSession, EndSession, GetSessionInfo)
+          com.example.ensenta.gen.deposit  (PartnerDepositRequest3: CreateDepositBatch, AddDepositItem, ...)
+      -->
+      <plugin>
+        <groupId>org.jvnet.jaxb</groupId>
+        <artifactId>jaxb-maven-plugin</artifactId>
+        <version>4.0.8</version>
+        <executions>
+          <execution>
+            <id>sso</id>
+            <goals><goal>generate</goal></goals>
+            <configuration>
+              <schemaLanguage>WSDL</schemaLanguage>
+              <schemaDirectory>src/main/resources/wsdl</schemaDirectory>
+              <schemaIncludes><include>PartnerSSORequest3.wsdl</include></schemaIncludes>
+              <generatePackage>com.example.ensenta.gen.sso</generatePackage>
+              <generateDirectory>${project.build.directory}/generated-sources/sso</generateDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>deposit</id>
+            <goals><goal>generate</goal></goals>
+            <configuration>
+              <schemaLanguage>WSDL</schemaLanguage>
+              <schemaDirectory>src/main/resources/wsdl</schemaDirectory>
+              <schemaIncludes><include>PartnerDepositRequest3.wsdl</include></schemaIncludes>
+              <generatePackage>com.example.ensenta.gen.deposit</generatePackage>
+              <generateDirectory>${project.build.directory}/generated-sources/deposit</generateDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

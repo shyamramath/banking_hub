@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+ensenta:
+  # UAT PartnerId: request from EPS.TechIntegrations@jackhenry.com
+  partner-id: ${ENSENTA_PARTNER_ID}
+  language-id: 9                # 9 = English in Jack Henry's examples
+  # Endpoint URLs come from the WSDL <soap:address> elements (UAT and Production differ)
+  sso-endpoint: ${ENSENTA_SSO_URL}
+  deposit-endpoint: ${ENSENTA_DEPOSIT_URL}
+  # SOAPAction values come from the WSDL <soap:operation soapAction="..."> attributes
+  soap-action-base-sso: ${ENSENTA_SOAP_ACTION_SSO}
+  soap-action-base-deposit: ${ENSENTA_SOAP_ACTION_DEPOSIT}
+
+  # Client x509 certificate issued by EPS Tech Integrations (separate certs for UAT and Production).
+  # Generate the request with the "Mobile Certificate Request" kit, install it on the machine that
+  # created the request, then export it with its private key as PKCS#12 (.pfx/.p12).
+  client-cert:
+    keystore: file:${ENSENTA_KEYSTORE_PATH}
+    keystore-password: ${ENSENTA_KEYSTORE_PASSWORD}
+    keystore-type: PKCS12
+  truststore:
+    path: ${ENSENTA_TRUSTSTORE_PATH:}        # leave empty to use the JVM default trust store
+    password: ${ENSENTA_TRUSTSTORE_PASSWORD:}
+
+  timeouts:
+    connect-ms: 5000
+    read-ms: 30000              # image upload and processing calls can be slow
+
+  batch-summary-poll:
+    max-attempts: 6             # docs: wait ~2-5 s and retry when ItemCount does not match
+    initial-delay-ms: 2000
+    max-delay-ms: 5000
+
+logging:
+  level:
+    org.springframework.ws.client.MessageTracing: INFO   # set to TRACE in UAT only; payloads contain images and PII

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ensenta Mobile Deposit Integration Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a technical briefing. Sticky contents rail on the left, one reading column on the right,
+   diagrams and tables allowed to run wider than the prose. Teal accent = "the part we build". */
+:root {
+  --bg: #f4f6f7;
+  --surface: #ffffff;
+  --ink: #15222b;
+  --muted: #56646e;
+  --line: #d4dbe0;
+  --accent: #0b6b72;
+  --accent-soft: #e1f0f0;
+  --tint: #eef2f4;
+  --good: #2c7a4d;
+  --warn: #9a5c00;
+  --crit: #b3261e;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1519;
+    --surface: #152027;
+    --ink: #e4eaee;
+    --muted: #9aa8b2;
+    --line: #2a3943;
+    --accent: #52b8bd;
+    --accent-soft: #143338;
+    --tint: #1a2830;
+    --good: #5cc08a;
+    --warn: #e2a440;
+    --crit: #f07068;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1519;
+  --surface: #152027;
+  --ink: #e4eaee;
+  --muted: #9aa8b2;
+  --line: #2a3943;
+  --accent: #52b8bd;
+  --accent-soft: #143338;
+  --tint: #1a2830;
+  --good: #5cc08a;
+  --warn: #e2a440;
+  --crit: #f07068;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+.shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+}
+header.top {
+  grid-column: 1 / -1;
+  padding: 48px 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(30px, 4.2vw, 44px);
+  line-height: 1.12;
+  margin: 0 0 14px;
+  text-wrap: balance;
+  max-width: 22ch;
+}
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 14px; }
+.meta span strong { color: var(--ink); font-weight: 500; }
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding-top: 32px;
+  font-size: 14px;
+}
+nav.toc p { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: toc; }
+nav.toc li { counter-increment: toc; }
+nav.toc a {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+nav.toc a::before { content: counter(toc, decimal-leading-zero); font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 2px; }
+nav.toc a:hover { background: var(--tint); }
+
+main { padding-top: 32px; min-width: 0; }
+section { padding: 8px 0 40px; border-bottom: 1px solid var(--line); margin-bottom: 36px; scroll-margin-top: 16px; }
+section:last-of-type { border-bottom: 0; }
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+h2 .num { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 500; display: block; margin-bottom: 6px; letter-spacing: .04em; }
+h3 { font-size: 18px; font-weight: 600; margin: 32px 0 8px; }
+p, ul, ol.steps { max-width: 72ch; }
+.lead { font-size: 18px; color: var(--ink); margin: 6px 0 20px; max-width: 70ch; }
+.muted { color: var(--muted); }
+
+.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.card h3 { margin: 0 0 6px; font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); font-weight: 500; }
+.card p { margin: 0; font-size: 15px; }
+
+.note {
+  border-left: 3px solid var(--warn);
+  background: var(--surface);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 14.5px;
+  max-width: 76ch;
+  margin: 18px 0;
+}
+.note strong { color: var(--warn); }
+
+.table-wrap { overflow-x: auto; margin: 16px 0 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; line-height: 1.45; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+thead th { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; background: var(--tint); white-space: nowrap; }
+td:first-child { font-weight: 600; }
+td.plain { font-weight: 400; }
+.num-col { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.chip {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.chip.sync { color: var(--accent); }
+.chip.async { color: var(--muted); }
+.chip.high { color: var(--crit); }
+.chip.med { color: var(--warn); }
+
+figure { margin: 24px 0 8px; }
+figure .canvas { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; }
+figure svg { display: block; width: 100%; height: auto; min-width: 640px; color: var(--ink); }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; max-width: 76ch; }
+
+/* diagram vocabulary, styled from the page tokens */
+.d-box { fill: var(--surface); stroke: var(--muted); stroke-width: 1.25; }
+.d-main { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.d-ext { fill: var(--surface); stroke: var(--muted); stroke-width: 1.25; stroke-dasharray: 5 4; }
+.d-zone { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.d-zone-tint { fill: var(--tint); stroke: var(--line); stroke-width: 1; }
+.d-edge { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+.d-edge.ret { stroke-dasharray: 5 4; }
+.d-edge.async { stroke-dasharray: 2 3; }
+.d-life { stroke: var(--line); stroke-width: 1.25; stroke-dasharray: 4 4; }
+.d-frag { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 6 4; }
+.d-head { fill: var(--muted); }
+.d-gate { fill: var(--accent); }
+.d-axis { stroke: var(--muted); stroke-width: 1.25; fill: none; }
+.t-title { font: 600 15px var(--font-body); fill: var(--ink); }
+.t-name { font: 600 13px var(--font-body); fill: var(--ink); }
+.t-sub { font: 400 11.5px var(--font-body); fill: var(--muted); }
+.t-body { font: 400 12px var(--font-body); fill: var(--ink); }
+.t-lbl { font: 400 11.5px var(--font-body); fill: var(--muted); }
+.t-msg { font: 400 11.5px var(--font-body); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.t-frag { font: 600 11px var(--font-mono); fill: var(--accent); }
+.t-step { font: 500 11px var(--font-mono); fill: var(--accent); }
+
+pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 12px 0 18px;
+}
+code { font-family: var(--font-mono); font-size: .92em; }
+p code, li code, td code { background: var(--tint); padding: 1px 5px; border-radius: 4px; }
+.code-label { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin: 18px 0 -4px; text-transform: uppercase; letter-spacing: .05em; }
+
+ol.steps { padding-left: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
+ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 36px 1fr; gap: 4px; }
+ol.steps > li::before {
+  content: counter(step);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  margin-top: 1px;
+}
+ol.steps strong { font-weight: 600; }
+
+ul.checks { list-style: none; padding: 0; display: grid; gap: 8px; }
+ul.checks li { display: grid; grid-template-columns: 26px 1fr; }
+ul.checks li::before { content: ""; width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; margin-top: 5px; }
+
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sources { font-size: 14px; columns: 2; column-gap: 32px; padding-left: 18px; max-width: none; }
+.sources li { break-inside: avoid; margin-bottom: 6px; }
+
+footer { grid-column: 1 / -1; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 980px) {
+  .shell { grid-template-columns: 1fr; gap: 0; }
+  nav.toc { position: static; padding-top: 20px; }
+  nav.toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .shell { padding: 0 16px 60px; }
+  .summary, .two { grid-template-columns: 1fr; }
+  .sources { columns: 1; }
+  nav.toc ol { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header class="top">
+  <p class="kicker">Solution architecture briefing</p>
+  <h1>Integrating mobile check deposit with Jack Henry Ensenta</h1>
+  <div class="meta">
+    <span><strong>For</strong> Digital banking engineering, deposit operations and fraud teams</span>
+    <span><strong>Date</strong> 16 Nov 2026</span>
+    <span><strong>Status</strong> Draft for team discussion</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#summary">Executive summary</a></li>
+    <li><a href="#product">What Ensenta is</a></li>
+    <li><a href="#options">Integration options</a></li>
+    <li><a href="#architecture">Reference architecture</a></li>
+    <li><a href="#workflow">Deposit workflow</a></li>
+    <li><a href="#api">API operations</a></li>
+    <li><a href="#security">Authentication and security</a></li>
+    <li><a href="#errors">Error handling</a></li>
+    <li><a href="#code">Gateway code</a></li>
+    <li><a href="#onboarding">Onboarding to Jack Henry</a></li>
+    <li><a href="#risks">Risks</a></li>
+    <li><a href="#questions">Open questions</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="summary">
+  <h2><span class="num">01</span>Executive summary</h2>
+  <p class="lead">We should integrate natively with the Ensenta Mobile API (Multi-Check) through our own Deposit Gateway service. The mobile app captures check images with Mitek MiSnap, and the gateway runs the SOAP conversation with Ensenta using a Jack Henry–issued client certificate.</p>
+  <div class="summary">
+    <div class="card">
+      <h3>What it is</h3>
+      <p>Ensenta Consumer Mobile and Business Mobile are Jack Henry's mobile remote deposit platforms. They process check images, score each check against more than 200 risk factors, and return items for review before posting.</p>
+    </div>
+    <div class="card">
+      <h3>How to onboard</h3>
+      <p>Confirm we are contracted for Ensenta (not SmartPay). Then get a UAT PartnerId and client certificate from EPS Tech Integrations, build and test, and pass Jack Henry's integration certification before getting production credentials.</p>
+    </div>
+    <div class="card">
+      <h3>How to integrate</h3>
+      <p>A SOAP/XML API split into two services, sign-on and deposit. A deposit is a short conversation: start a session, create a batch, add checks, poll, review risk flags, post, end the session.</p>
+    </div>
+    <div class="card">
+      <h3>What we own</h3>
+      <p>User enrollment and eligibility, image capture quality, the review UX for flagged checks, session handling, and mapping Ensenta error codes to clear messages for the customer.</p>
+    </div>
+  </div>
+  <div class="note"><strong>Note on the code and field values.</strong> This report follows Jack Henry's public developer guides. The WSDL and the API Reference sit behind the developer portal login, so the code samples are a starting point. Some field values (tender type, image category, account type codes) need confirming with Jack Henry.</div>
+</section>
+
+<section id="product">
+  <h2><span class="num">02</span>What Ensenta is</h2>
+  <p class="lead">Ensenta is a suite of deposit products that Jack Henry acquired. Jack Henry also sells a second, separate mobile deposit platform called SmartPay, so we must confirm which one we are contracted for before building.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Product</th><th>What it does</th><th>Relevance to us</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://api.payments.jackhenry.com/developer/use-cases/consumer-rdc">Ensenta Consumer Mobile</a></td><td class="plain">Mobile check deposit for retail customers. Its risk module presents items for the bank's review based on more than 200 risk factors.</td><td class="plain">The main product for consumer mobile deposit.</td></tr>
+      <tr><td><a href="https://api.payments.jackhenry.com/developer/use-cases/commercial-rdc">Ensenta Business Mobile</a></td><td class="plain">Mobile deposit for business customers, with an option for a real-time Early Warning Services account check.</td><td class="plain">Same API, for small-business customers.</td></tr>
+      <tr><td><a href="https://api.payments.jackhenry.com/developer/api-cards">Ensenta RDC SSO</a></td><td class="plain">Sends signed-in users from our app straight into the Ensenta-hosted deposit portal.</td><td class="plain">Fastest option; no capture screens to build.</td></tr>
+      <tr><td><a href="https://api.payments.jackhenry.com/developer/api-cards">Ensenta Smart Alerts Webhook</a></td><td class="plain">Pushes near real-time deposit events from the Ensenta platform.</td><td class="plain">Status updates for customers and operations.</td></tr>
+      <tr><td>Ensenta ATM and desktop RDC</td><td class="plain">Other deposit channels in the same Ensenta suite.</td><td class="plain">Out of scope here, but share the back office.</td></tr>
+      <tr><td><a href="https://api.payments.jackhenry.com/docs/mob-rdc/overview">JHA SmartPay mRDC / RDA</a></td><td class="plain">A different Jack Henry mobile deposit platform with its own APIs (SOAP or JSON).</td><td class="plain">Not Ensenta. Do not build against it unless that is what we bought.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="options">
+  <h2><span class="num">03</span>Integration options</h2>
+  <p class="lead">For our own mobile app, the native Multi-Check API gives the best customer experience. The hosted SSO portal is a fallback if we need to launch quickly.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Option</th><th>How it works</th><th>Effort</th><th>Customer experience</th><th>When to choose</th></tr></thead>
+    <tbody>
+      <tr><td>Ensenta Mobile API, Multi-Check</td><td class="plain">Our app captures images; our backend calls Ensenta's SOAP API to deposit one or many checks per batch.</td><td class="plain"><span class="chip med">High</span></td><td class="plain">Fully native, multi-check, in-app review</td><td class="plain">Recommended for our own app</td></tr>
+      <tr><td>Ensenta Mobile API, Single-Check</td><td class="plain">Same pattern, one check per deposit.</td><td class="plain"><span class="chip med">Medium</span></td><td class="plain">Native, one check at a time</td><td class="plain">Simpler first release</td></tr>
+      <tr><td>Ensenta RDC SSO (hosted)</td><td class="plain">We sign the user in to Ensenta's hosted portal and hand them off.</td><td class="plain"><span class="chip async">Low</span></td><td class="plain">Leaves our app's look and feel</td><td class="plain">Fast launch, desktop or business users</td></tr>
+      <tr><td>Banno built-in</td><td class="plain">If our digital banking runs on Banno, Ensenta is already integrated, with up to 20 checks per batch (<a href="https://knowledge.banno.com/apps/rdc/">Banno</a>).</td><td class="plain"><span class="chip async">Configuration</span></td><td class="plain">Native inside Banno</td><td class="plain">Only if we are on Banno</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="architecture">
+  <h2><span class="num">04</span>Reference architecture</h2>
+  <p class="lead">The mobile app talks only to our Deposit Gateway. The gateway holds the Ensenta credentials, decides who may deposit, and makes every call to Jack Henry.</p>
+  <figure>
+    <div class="canvas">
+    <svg viewBox="0 0 760 500" role="img" aria-label="Our Deposit Gateway is the only system that talks to Ensenta">
+      <defs><marker id="arch-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="d-head" d="M0 0L10 5L0 10z"/></marker></defs>
+      <text class="t-title" x="24" y="32">Our Deposit Gateway is the only system that talks to Ensenta</text>
+      <rect class="d-zone" x="24" y="56" width="300" height="416" rx="8"/>
+      <text class="t-name" x="40" y="80">Our digital banking</text>
+      <rect class="d-zone-tint" x="436" y="56" width="300" height="416" rx="8"/>
+      <text class="t-name" x="452" y="80">Jack Henry EPS Ensenta</text>
+
+      <path class="d-edge" d="M174 152V184" marker-end="url(#arch-arrow)"/>
+      <path class="d-edge" d="M174 288V256" marker-end="url(#arch-arrow)"/>
+      <path class="d-edge" d="M308 220H420V124"/>
+      <path class="d-edge" d="M420 124H452" marker-end="url(#arch-arrow)"/>
+      <path class="d-edge" d="M420 204H452" marker-end="url(#arch-arrow)"/>
+      <path class="d-edge" d="M586 240V256" marker-end="url(#arch-arrow)"/>
+      <path class="d-edge async" d="M452 356H388V404H308" marker-end="url(#arch-arrow)"/>
+      <path class="d-edge ret" d="M720 204H728V428H720" marker-end="url(#arch-arrow)"/>
+
+      <rect class="d-box" x="40" y="96" width="268" height="56" rx="8"/>
+      <text class="t-name" x="52" y="120">Mobile banking app</text>
+      <text class="t-sub" x="52" y="136">Mitek MiSnap check capture</text>
+      <rect class="d-main" x="40" y="184" width="268" height="72" rx="8"/>
+      <text class="t-name" x="52" y="208">Deposit Gateway (our service)</text>
+      <text class="t-body" x="52" y="224">Holds PartnerId and client cert,</text>
+      <text class="t-body" x="52" y="240">SOAP calls, polling, error mapping</text>
+      <rect class="d-box" x="40" y="288" width="268" height="56" rx="8"/>
+      <text class="t-name" x="52" y="312">Enrollment and eligibility</text>
+      <text class="t-sub" x="52" y="328">Digital users, core accounts, limits</text>
+      <rect class="d-box" x="40" y="376" width="268" height="56" rx="8"/>
+      <text class="t-name" x="52" y="400">Notifications and history</text>
+      <text class="t-sub" x="52" y="416">Push, email, deposit status</text>
+
+      <rect class="d-box" x="452" y="96" width="268" height="56" rx="8"/>
+      <text class="t-name" x="464" y="120">Sign-on service</text>
+      <text class="t-sub" x="464" y="136">StartSession · EndSession</text>
+      <rect class="d-box" x="452" y="168" width="268" height="72" rx="8"/>
+      <text class="t-name" x="464" y="192">Deposit service</text>
+      <text class="t-sub" x="464" y="208">Create batch, add items, review,</text>
+      <text class="t-sub" x="464" y="224">update, post</text>
+      <rect class="d-box" x="452" y="256" width="268" height="56" rx="8"/>
+      <text class="t-name" x="464" y="280">Risk review (200+ factors)</text>
+      <text class="t-sub" x="464" y="296">Bank staff review flagged items</text>
+      <rect class="d-box" x="452" y="328" width="268" height="56" rx="8"/>
+      <text class="t-name" x="464" y="352">Smart Alerts webhook</text>
+      <text class="t-sub" x="464" y="368">Near real-time deposit events</text>
+      <rect class="d-ext" x="452" y="400" width="268" height="56" rx="8"/>
+      <text class="t-name" x="464" y="424">Posting to core</text>
+      <text class="t-sub" x="464" y="440">Path to confirm with Jack Henry</text>
+
+      <text class="t-lbl" x="372" y="212" text-anchor="middle">SOAP + mTLS</text>
+      <text class="t-lbl" x="348" y="398" text-anchor="middle">webhook</text>
+    </svg>
+    </div>
+    <figcaption>Solid arrows are synchronous calls. The dotted arrow is the Smart Alerts webhook. The dashed box is the posting path to our core, which the public guides do not describe. The teal box is the component we build.</figcaption>
+  </figure>
+  <h3>Responsibilities by layer</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Layer</th><th>Owned by</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td>Mobile app</td><td class="plain">Mobile team</td><td class="plain">Capture front and back images with MiSnap, collect amounts, show risk flags and the receipt.</td></tr>
+      <tr><td>Deposit Gateway</td><td class="plain">Platform / integration team</td><td class="plain">Only client of Ensenta. Holds the certificate and PartnerId, manages sessions, polls processing, maps errors, exposes a simple JSON API to the app.</td></tr>
+      <tr><td>Enrollment and eligibility</td><td class="plain">Digital banking + deposit operations</td><td class="plain">Decide which users may deposit, into which accounts, and with what limits. Ensenta expects us to do this.</td></tr>
+      <tr><td>Ensenta platform</td><td class="plain">Jack Henry</td><td class="plain">Image processing, risk scoring, item review, posting and alerts.</td></tr>
+      <tr><td>Item review</td><td class="plain">Our deposit operations staff</td><td class="plain">Review checks Ensenta flags for the bank, and handle returns.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="workflow">
+  <h2><span class="num">05</span>Deposit workflow</h2>
+  <p class="lead">Ensenta's API is a conversation, not one submit call. The gateway uploads all checks, waits for processing, shows the customer any risk flags, and only then posts the batch.</p>
+  <figure>
+    <div class="canvas">
+    <svg viewBox="0 0 900 620" role="img" aria-label="A deposit is a conversation: upload checks, poll for processing, review risk flags, then post">
+      <defs><marker id="seq-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="d-head" d="M0 0L10 5L0 10z"/></marker></defs>
+      <rect class="d-box" x="30" y="12" width="120" height="40" rx="8"/><text class="t-name" x="90" y="36" text-anchor="middle">Mobile app</text>
+      <rect class="d-main" x="210" y="12" width="120" height="40" rx="8"/><text class="t-name" x="270" y="36" text-anchor="middle">Deposit Gateway</text>
+      <rect class="d-box" x="390" y="12" width="120" height="40" rx="8"/><text class="t-name" x="450" y="36" text-anchor="middle">Sign-on service</text>
+      <rect class="d-box" x="570" y="12" width="120" height="40" rx="8"/><text class="t-name" x="630" y="36" text-anchor="middle">Deposit service</text>
+      <rect class="d-box" x="750" y="12" width="120" height="40" rx="8"/><text class="t-name" x="810" y="36" text-anchor="middle">Bank review</text>
+      <line class="d-life" x1="90" y1="52" x2="90" y2="604"/>
+      <line class="d-life" x1="270" y1="52" x2="270" y2="604"/>
+      <line class="d-life" x1="450" y1="52" x2="450" y2="604"/>
+      <line class="d-life" x1="630" y1="52" x2="630" y2="604"/>
+      <line class="d-life" x1="810" y1="52" x2="810" y2="604"/>
+
+      <rect class="d-frag" x="250" y="268" width="400" height="70" rx="6"/>
+      <text class="t-frag" x="258" y="281">POLL EVERY 2–5 S</text>
+
+      <path class="d-edge" d="M90 92H270" marker-end="url(#seq-arrow)"/><text class="t-msg" x="180" y="86" text-anchor="middle">Checks + amounts (JSON)</text>
+      <path class="d-edge" d="M270 124H450" marker-end="url(#seq-arrow)"/><text class="t-msg" x="360" y="118" text-anchor="middle">StartSession (client cert)</text>
+      <path class="d-edge ret" d="M450 156H270" marker-end="url(#seq-arrow)"/><text class="t-msg" x="360" y="150" text-anchor="middle">Token, state ID, account keys</text>
+      <path class="d-edge" d="M270 188H630" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="182" text-anchor="middle">CreateDepositBatch</text>
+      <path class="d-edge ret" d="M630 220H270" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="214" text-anchor="middle">DepositBatchId</text>
+      <path class="d-edge" d="M270 252H630" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="246" text-anchor="middle">AddDepositItem × N (Base64 images)</text>
+      <path class="d-edge" d="M270 298H630" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="292" text-anchor="middle">GetDepositBatchSummary</text>
+      <path class="d-edge ret" d="M630 326H270" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="320" text-anchor="middle">ItemCount, items needing review</text>
+      <path class="d-edge" d="M270 362H630" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="356" text-anchor="middle">GetDepositItem × N</text>
+      <path class="d-edge ret" d="M630 394H270" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="388" text-anchor="middle">MICR, amounts, risk factors</text>
+      <path class="d-edge ret" d="M270 426H90" marker-end="url(#seq-arrow)"/><text class="t-msg" x="180" y="420" text-anchor="middle">Items to review</text>
+      <path class="d-edge" d="M90 458H270" marker-end="url(#seq-arrow)"/><text class="t-msg" x="180" y="452" text-anchor="middle">Confirm / fix / delete</text>
+      <path class="d-edge" d="M270 490H630" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="484" text-anchor="middle">UpdateDepositItems, PostDepositBatch</text>
+      <path class="d-edge ret" d="M630 522H270" marker-end="url(#seq-arrow)"/><text class="t-msg" x="450" y="516" text-anchor="middle">TransactionId, ReceiptNumber</text>
+      <path class="d-edge async" d="M630 554H810" marker-end="url(#seq-arrow)"/><text class="t-msg" x="720" y="548" text-anchor="middle">Flagged items</text>
+      <path class="d-edge" d="M270 586H450" marker-end="url(#seq-arrow)"/><text class="t-msg" x="360" y="580" text-anchor="middle">EndSession</text>
+    </svg>
+    </div>
+    <figcaption>The customer sees risk flags before the deposit is posted, so they can fix an amount or confirm an item. Items that still need attention go to the bank's review queue after posting.</figcaption>
+  </figure>
+  <ol class="steps">
+    <li><div><strong>Start session.</strong> The gateway calls <code>StartSession</code> with the depositor's identity, device, IP address and the list of accounts they may deposit into. Ensenta returns a SessionToken, a SessionStateId and an index for each account.</div></li>
+    <li><div><strong>Create the batch.</strong> <code>CreateDepositBatch</code> with the account index, the number of checks and a description. The Amount field is not used, so send 0.00. Ensenta returns a DepositBatchId.</div></li>
+    <li><div><strong>Add each check.</strong> <code>AddDepositItem</code> with the item number, amount, tender type, image category, preprocessing state, and front and back images as Base64.</div></li>
+    <li><div><strong>Wait for processing.</strong> Call <code>GetDepositBatchSummary</code> until ItemCount matches the number of checks sent. If it doesn't yet, wait about 2–5 seconds and try again.</div></li>
+    <li><div><strong>Review each check.</strong> <code>GetDepositItem</code> returns the MICR line, the amount read from the image, the amount the user entered, status, funds-availability text and the risk factors. Each risk factor says whether it can be fixed or confirmed.</div></li>
+    <li><div><strong>Fix or confirm.</strong> <code>UpdateDepositItems</code> lets the user delete a check, confirm a flagged item, or correct the amount, MICR or images.</div></li>
+    <li><div><strong>Post.</strong> <code>PostDepositBatch</code> with the item numbers to deposit. Ensenta returns the transaction ID, receipt number, totals and status.</div></li>
+    <li><div><strong>End or continue.</strong> Call <code>EndSession</code>, or start another batch in the same session if the user deposits again.</div></li>
+  </ol>
+</section>
+
+<section id="api">
+  <h2><span class="num">06</span>API operations</h2>
+  <p class="lead">Ten operations across two SOAP services cover the deposit workflow. Jack Henry also publishes guides for rejects, confirmable risk factors, deposit history, terms of service, email receipts and large account lists.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Operation</th><th>Service</th><th>Main inputs</th><th>Main outputs</th></tr></thead>
+    <tbody>
+      <tr><td><code>StartSession</code></td><td class="plain">Sign-on</td><td class="plain">PartnerId, user identity, device, IP, eligible accounts</td><td class="plain">SessionToken, SessionStateId, account keys, limit messages, issuer policy</td></tr>
+      <tr><td><code>GetSessionInfo</code></td><td class="plain">Sign-on</td><td class="plain">Session fields</td><td class="plain">Current session details</td></tr>
+      <tr><td><code>EndSession</code></td><td class="plain">Sign-on</td><td class="plain">Session fields</td><td class="plain">Confirmation</td></tr>
+      <tr><td><code>CreateDepositBatch</code></td><td class="plain">Deposit</td><td class="plain">Account index, item count, description</td><td class="plain">DepositBatchId</td></tr>
+      <tr><td><code>AddDepositItem</code></td><td class="plain">Deposit</td><td class="plain">Batch ID, item number, amount, front and back Base64 images</td><td class="plain">Response code</td></tr>
+      <tr><td><code>GetDepositBatchSummary</code></td><td class="plain">Deposit</td><td class="plain">Batch ID</td><td class="plain">Item counts, items needing review, item numbers</td></tr>
+      <tr><td><code>GetDepositItem</code></td><td class="plain">Deposit</td><td class="plain">Batch ID, item number</td><td class="plain">MICR, read vs entered amount, status, funds availability, risk factors</td></tr>
+      <tr><td><code>UpdateDepositItems</code></td><td class="plain">Deposit</td><td class="plain">Items to delete, confirm or correct</td><td class="plain">Response code</td></tr>
+      <tr><td><code>PostDepositBatch</code></td><td class="plain">Deposit</td><td class="plain">Batch ID, item numbers</td><td class="plain">TransactionId, ReceiptNumber, totals, status</td></tr>
+      <tr><td><code>GetCheckImage</code></td><td class="plain">Deposit</td><td class="plain">Batch ID, item number</td><td class="plain">Stored check image</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">Every request after StartSession carries the PartnerId, device details and the session token and state ID. A response code of 00 means success.</p>
+</section>
+
+<section id="security">
+  <h2><span class="num">07</span>Authentication and security</h2>
+  <p class="lead">Ensenta authenticates our server, not the customer: it checks a client certificate tied to our PartnerId, then issues a short-lived session for each depositor.</p>
+  <div class="two">
+    <div class="card">
+      <h3>Client certificate</h3>
+      <p>The TLS request must carry a previously issued x509 certificate, which Ensenta validates for our PartnerId and environment. We create certificate requests with Jack Henry's kit, and EPS Tech Integrations issues the certificates. UAT and production certificates are separate and not interchangeable.</p>
+    </div>
+    <div class="card">
+      <h3>Session</h3>
+      <p>StartSession returns a SessionToken and SessionStateId that go on every later call. A session expires after 15 minutes of inactivity, and each successful request refreshes it.</p>
+    </div>
+  </div>
+  <h3>Controls we add</h3>
+  <ul>
+    <li>Store the certificate and its private key in a secrets manager or HSM, never in the app or source control.</li>
+    <li>The mobile app authenticates to our gateway with our existing OAuth2/OIDC tokens. It never sees the certificate, PartnerId or Ensenta session values.</li>
+    <li>Only enrolled users with eligible accounts reach <code>StartSession</code>.</li>
+    <li>Never log SOAP payloads in production: they contain check images, account numbers and personal data.</li>
+    <li>Pass the real device ID and client IP: Ensenta uses them for risk scoring.</li>
+    <li>Rotate certificates before expiry, with a reminder well ahead of the date.</li>
+  </ul>
+</section>
+
+<section id="errors">
+  <h2><span class="num">08</span>Error handling</h2>
+  <p class="lead">The gateway turns each Ensenta response code into one clear action for the app.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Code</th><th>Meaning</th><th>Gateway action</th><th>What the customer sees</th></tr></thead>
+    <tbody>
+      <tr><td><code>00</code></td><td class="plain">Success</td><td class="plain">Continue</td><td class="plain">Next step</td></tr>
+      <tr><td><code>E51</code> / <code>E50</code></td><td class="plain">Session expired / not found</td><td class="plain">Start a new session once and retry</td><td class="plain">Nothing, unless the retry fails</td></tr>
+      <tr><td><code>E88</code></td><td class="plain">Item not found yet</td><td class="plain">Keep polling with backoff</td><td class="plain">"Processing your checks"</td></tr>
+      <tr><td><code>E35</code></td><td class="plain">Rejected by deposit policy</td><td class="plain">Stop; return the reject reasons</td><td class="plain">Why the check can't be deposited</td></tr>
+      <tr><td><code>EL1</code></td><td class="plain">Deposit limit exceeded</td><td class="plain">Stop; return the limit message</td><td class="plain">Limit reached, with the amount</td></tr>
+      <tr><td><code>E77</code></td><td class="plain">User blocklisted</td><td class="plain">Block mobile deposit for the user; alert operations</td><td class="plain">"Contact us"</td></tr>
+      <tr><td><code>E500</code></td><td class="plain">Invalid parameter</td><td class="plain">Log and alert engineering</td><td class="plain">Generic error</td></tr>
+      <tr><td><code>E99</code></td><td class="plain">Unexpected error</td><td class="plain">Restart the deposit</td><td class="plain">"Please try again"</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="code">
+  <h2><span class="num">09</span>Gateway code</h2>
+  <p class="lead">The starter project (<code>ensenta-mrdc-sample.zip</code>) is a Spring Boot service that generates SOAP classes from the WSDL and runs the full workflow. The extracts below show the two parts that matter most: mutual TLS and the deposit flow.</p>
+
+  <p class="code-label">Mutual TLS for the SOAP clients (Spring WS)</p>
+<pre><code>@Bean
+HttpsUrlConnectionMessageSender mutualTlsSender(EnsentaProperties props) throws Exception {
+  KeyStore ks = KeyStore.getInstance("PKCS12");
+  try (InputStream in = props.clientCert().keystore().getInputStream()) {
+    ks.load(in, props.clientCert().keystorePassword().toCharArray());
+  }
+  KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+  kmf.init(ks, props.clientCert().keystorePassword().toCharArray());
+
+  HttpsUrlConnectionMessageSender sender = new HttpsUrlConnectionMessageSender();
+  sender.setKeyManagers(kmf.getKeyManagers());   // Ensenta validates this cert for our PartnerId
+  return sender;
+}</code></pre>
+
+  <p class="code-label">Deposit flow (MobileDepositService)</p>
+<pre><code>public ReviewResult submit(String userId, DepositorContext device,
+                           String toAccount, String description, List&lt;CheckImage&gt; checks) {
+  AccountHolder holder = eligibility.eligibleHolder(userId);        // we own enrollment
+  DepositorContext ctx = sessionFor(userId, device, holder);        // StartSession or reuse
+  int accountIndex = indexOf(userId, toAccount);
+
+  long batchId = ensenta.createDepositBatch(ctx, accountIndex, checks.size(), description);
+  for (int i = 0; i &lt; checks.size(); i++) {
+    CheckImage c = checks.get(i);
+    ensenta.addDepositItem(ctx, batchId, i + 1, c.amount(), c.frontBase64(), c.backBase64());
+  }
+
+  BatchSummary summary = waitForItems(ctx, batchId, checks.size()); // poll 2-5 s with backoff
+  List&lt;DepositItem&gt; items = summary.itemNumbers().stream()
+      .map(n -&gt; ensenta.getDepositItem(ctx, batchId, n))           // risk factors for review
+      .toList();
+  return new ReviewResult(batchId, summary, items);
+}</code></pre>
+
+  <p class="code-label">Gateway API for the mobile app</p>
+<pre><code>POST /api/mobile-deposits                  -&gt; upload checks, returns items + risk factors
+POST /api/mobile-deposits/{batchId}/post   -&gt; apply fixes/confirmations, post, returns receipt</code></pre>
+  <p class="muted">The project is not yet compiled against the real WSDL. Expect a few generated class and field names to change.</p>
+</section>
+
+<section id="onboarding">
+  <h2><span class="num">10</span>Onboarding to Jack Henry</h2>
+  <p class="lead">Onboarding runs in four phases with three gates, and ends with Jack Henry's integration certification and a hand-off to their Implementations team for production credentials.</p>
+  <figure>
+    <div class="canvas">
+    <svg viewBox="0 0 940 290" role="img" aria-label="Onboarding runs in four phases with gates at PartnerId issued, UAT certificate installed and certification passed">
+      <defs><marker id="road-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head" d="M0 0L10 5L0 10z"/></marker></defs>
+      <path class="d-axis" d="M20 48H924" marker-end="url(#road-arrow)"/>
+      <path class="d-gate" d="M240 40L248 48L240 56L232 48z"/>
+      <path class="d-gate" d="M470 40L478 48L470 56L462 48z"/>
+      <path class="d-gate" d="M700 40L708 48L700 56L692 48z"/>
+      <text class="t-name" x="240" y="28" text-anchor="middle">PartnerId issued</text>
+      <text class="t-name" x="470" y="28" text-anchor="middle">UAT cert installed</text>
+      <text class="t-name" x="700" y="28" text-anchor="middle">Certification passed</text>
+      <text class="t-name" x="914" y="28" text-anchor="end">Go-live</text>
+
+      <rect class="d-box" x="20" y="72" width="210" height="196" rx="8"/>
+      <text class="t-step" x="34" y="96">PHASE 1</text>
+      <text class="t-name" x="34" y="116">Contract and access</text>
+      <text class="t-body" x="34" y="144">· Confirm contract is Ensenta,</text>
+      <text class="t-body" x="44" y="160">not SmartPay</text>
+      <text class="t-body" x="34" y="180">· Register on the Jack Henry</text>
+      <text class="t-body" x="44" y="196">Payments developer portal</text>
+      <text class="t-body" x="34" y="216">· Request UAT PartnerId from</text>
+      <text class="t-body" x="44" y="232">EPS Tech Integrations</text>
+
+      <rect class="d-box" x="250" y="72" width="210" height="196" rx="8"/>
+      <text class="t-step" x="264" y="96">PHASE 2</text>
+      <text class="t-name" x="264" y="116">Set up</text>
+      <text class="t-body" x="264" y="144">· Download WSDL and</text>
+      <text class="t-body" x="274" y="160">certificate request kit</text>
+      <text class="t-body" x="264" y="180">· Send UAT and production</text>
+      <text class="t-body" x="274" y="196">certificate requests</text>
+      <text class="t-body" x="264" y="216">· Install, export to secrets</text>
+      <text class="t-body" x="264" y="236">· Pick native API or hosted SSO</text>
+
+      <rect class="d-main" x="480" y="72" width="210" height="196" rx="8"/>
+      <text class="t-step" x="494" y="96">PHASE 3</text>
+      <text class="t-name" x="494" y="116">Build and test</text>
+      <text class="t-body" x="494" y="144">· Deposit Gateway service</text>
+      <text class="t-body" x="494" y="164">· MiSnap capture in the app</text>
+      <text class="t-body" x="494" y="184">· Eligibility and limits</text>
+      <text class="t-body" x="494" y="204">· Review UX, error mapping</text>
+      <text class="t-body" x="494" y="224">· End-to-end tests in UAT</text>
+
+      <rect class="d-box" x="710" y="72" width="210" height="196" rx="8"/>
+      <text class="t-step" x="724" y="96">PHASE 4</text>
+      <text class="t-name" x="724" y="116">Certify and launch</text>
+      <text class="t-body" x="724" y="144">· Certification test plan,</text>
+      <text class="t-body" x="734" y="160">about one week</text>
+      <text class="t-body" x="724" y="180">· Implementations project</text>
+      <text class="t-body" x="724" y="200">· Production cert and</text>
+      <text class="t-body" x="734" y="216">credentials</text>
+      <text class="t-body" x="724" y="236">· Pilot, then full rollout</text>
+    </svg>
+    </div>
+    <figcaption>Phases are not drawn to scale. Phase 3 (teal) is where most of our engineering effort goes.</figcaption>
+  </figure>
+
+  <h3>Step by step</h3>
+  <ol class="steps">
+    <li><div><strong>Confirm the contract.</strong> Check with our Jack Henry relationship manager that we are licensed for Ensenta Consumer Mobile (and Business Mobile if needed), not SmartPay RDA or mRDC. Jack Henry's own guidance tells developers to confirm which platform their company is contracted for.</div></li>
+    <li><div><strong>Get developer access.</strong> Register on the Jack Henry Payments developer portal (api.payments.jackhenry.com) to reach the guides, API Reference and Downloads page.</div></li>
+    <li><div><strong>Request a UAT PartnerId</strong> by emailing EPS.TechIntegrations@jackhenry.com.</div></li>
+    <li><div><strong>Get certificates.</strong> Download the Mobile Certificate Request kit, create UAT and production certificate requests, and send them to EPS Tech Integrations. Install each issued certificate on the machine that created its request, then export it to our secrets store.</div></li>
+    <li><div><strong>Download the WSDL</strong> for the sign-on and deposit services, and generate the client classes.</div></li>
+    <li><div><strong>Build</strong> the Deposit Gateway, MiSnap capture in the app, the eligibility service, the review screens and error handling.</div></li>
+    <li><div><strong>Test in UAT</strong> end to end: single and multi-check deposits, rejects, confirmable risk factors, session expiry, limits and duplicate checks.</div></li>
+    <li><div><strong>Certify.</strong> A Jack Henry engineer builds a test plan for our integration. Certification generally takes about a week, longer if fixes are needed.</div></li>
+    <li><div><strong>Go live.</strong> Jack Henry's Implementations team runs the implementation project and issues production credentials. Launch to a pilot group first, then all customers.</div></li>
+  </ol>
+
+  <h3>Internal owners to name before we start</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Role</th><th>Responsible for</th></tr></thead>
+    <tbody>
+      <tr><td>Business sponsor</td><td class="plain">Deposit or digital banking head: scope, limits and funds-availability policy</td></tr>
+      <tr><td>Solution architect</td><td class="plain">Deposit Gateway, eligibility design and the Jack Henry technical relationship</td></tr>
+      <tr><td>Mobile lead</td><td class="plain">MiSnap integration and the deposit and review screens</td></tr>
+      <tr><td>Information security</td><td class="plain">Certificate handling, secrets, logging rules</td></tr>
+      <tr><td>Deposit operations</td><td class="plain">Item review queue, returns and customer support scripts</td></tr>
+      <tr><td>Vendor management</td><td class="plain">Third-party due diligence, which Jack Henry says is the bank's responsibility</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="risks">
+  <h2><span class="num">11</span>Risks</h2>
+  <p class="lead">The biggest early risk is building against the wrong Jack Henry platform. After that, image quality and the review experience decide whether customers succeed.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Risk</th><th>Severity</th><th>Detail</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Wrong platform</td><td class="plain"><span class="chip high">High</span></td><td class="plain">Ensenta and SmartPay have different APIs; "mRDC" is a SmartPay product name.</td><td class="plain">Confirm the contract before any build work.</td></tr>
+      <tr><td>Image quality</td><td class="plain"><span class="chip high">High</span></td><td class="plain">Blurry or cropped images cause rejects and repeat attempts.</td><td class="plain">Use MiSnap auto-capture; test on low-end devices.</td></tr>
+      <tr><td>Unknown posting path</td><td class="plain"><span class="chip med">Medium</span></td><td class="plain">The public guides do not describe how deposits reach our core.</td><td class="plain">Get the posting design from Jack Henry in phase 1.</td></tr>
+      <tr><td>Session expiry mid-deposit</td><td class="plain"><span class="chip med">Medium</span></td><td class="plain">Sessions end after 15 minutes idle, for example while a user hunts for a second check.</td><td class="plain">Restart the session once automatically; keep the batch state in the gateway.</td></tr>
+      <tr><td>Slow processing</td><td class="plain"><span class="chip med">Medium</span></td><td class="plain">Items are processed asynchronously, so the app can wait several seconds.</td><td class="plain">Poll with backoff; show progress; time out with a clear message.</td></tr>
+      <tr><td>Review workload</td><td class="plain"><span class="chip med">Medium</span></td><td class="plain">Flagged items need bank staff to review them.</td><td class="plain">Staff the queue before launch; tune risk settings during the pilot.</td></tr>
+      <tr><td>Legacy SOAP stack</td><td class="plain"><span class="chip med">Medium</span></td><td class="plain">SOAP/XML with large Base64 images is heavier than REST and harder to debug.</td><td class="plain">Keep it inside the gateway; give the app a simple JSON API.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">Severity ratings are our own assessment for discussion.</p>
+</section>
+
+<section id="questions">
+  <h2><span class="num">12</span>Open questions for Jack Henry</h2>
+  <p class="lead">These need answers before or during phase 1.</p>
+  <ul class="checks">
+    <li><span>Are we contracted for Ensenta Consumer Mobile, Business Mobile, or both?</span></li>
+    <li><span>How do posted deposits reach our core and item processing, and on what schedule?</span></li>
+    <li><span>Which values do we use for tender type, image category, image preprocessing state and account type codes?</span></li>
+    <li><span>What endorsement rules apply, and how does Ensenta report a missing endorsement?</span></li>
+    <li><span>Maximum checks per batch and our deposit limits per user, day and month?</span></li>
+    <li><span>Do we need the Smart Alerts webhook, and what events does it send?</span></li>
+    <li><span>Which Mitek MiSnap version and licence come with our contract?</span></li>
+    <li><span>Who on our side reviews flagged items, and in which Ensenta tool?</span></li>
+  </ul>
+</section>
+
+<section id="sources">
+  <h2><span class="num">13</span>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://api.payments.jackhenry.com/docs/papi3-multi/overview">Ensenta Mobile API (Multi-Check) overview</a></li>
+    <li><a href="https://api.payments.jackhenry.com/docs/papi3-multi/Guides/Authentication">Ensenta Mobile API: Authentication Guide</a></li>
+    <li><a href="https://api.payments.jackhenry.com/docs/papi3-multi/Guides/CheckDeposit">Ensenta Mobile API: Check Deposit Guide</a></li>
+    <li><a href="https://api.payments.jackhenry.com/docs/papi3-multi/Guides/IntegrationCertification">Ensenta Mobile API: Integration Certification Process</a></li>
+    <li><a href="https://api.payments.jackhenry.com/docs/papi3-multi/APIReference/overview">Ensenta Mobile API: API Reference</a></li>
+    <li><a href="https://api.payments.jackhenry.com/developer/downloads/list">Jack Henry Payments developer Downloads</a></li>
+    <li><a href="https://api.payments.jackhenry.com/developer/api-cards">Jack Henry Payments API catalog</a></li>
+    <li><a href="https://api.payments.jackhenry.com/developer/use-cases/consumer-rdc">Jack Henry: Consumer Mobile Deposit</a></li>
+    <li><a href="https://api.payments.jackhenry.com/developer/use-cases/commercial-rdc">Jack Henry: Commercial Remote Deposit</a></li>
+    <li><a href="https://api.payments.jackhenry.com/docs/mob-rdc/overview">JHA SmartPay mRDC overview</a></li>
+    <li><a href="https://knowledge.banno.com/apps/rdc/">Banno Knowledge: Remote deposit capture</a></li>
+    <li><a href="https://jackhenry.dev/shared-responsibility/">Jack Henry Developer: Shared Responsibility</a></li>
+  </ul>
+</section>
+
+</main>
+
+<footer>Prepared 16 Nov 2026 from Jack Henry's public developer documentation. Field values, limits and the posting path should be confirmed with Jack Henry before build.</footer>
+</div>
+</body>
+</html>
