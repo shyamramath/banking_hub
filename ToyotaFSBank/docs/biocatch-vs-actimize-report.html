@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BioCatch vs NICE Actimize</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a technical briefing. Sticky contents rail on the left, one reading column on the right,
+   diagrams and tables allowed to run wider than the prose. Teal accent = "the part we build". */
+:root {
+  --bg: #f4f6f7;
+  --surface: #ffffff;
+  --ink: #15222b;
+  --muted: #56646e;
+  --line: #d4dbe0;
+  --accent: #0b6b72;
+  --accent-soft: #e1f0f0;
+  --tint: #eef2f4;
+  --good: #2c7a4d;
+  --warn: #9a5c00;
+  --crit: #b3261e;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1519;
+    --surface: #152027;
+    --ink: #e4eaee;
+    --muted: #9aa8b2;
+    --line: #2a3943;
+    --accent: #52b8bd;
+    --accent-soft: #143338;
+    --tint: #1a2830;
+    --good: #5cc08a;
+    --warn: #e2a440;
+    --crit: #f07068;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1519;
+  --surface: #152027;
+  --ink: #e4eaee;
+  --muted: #9aa8b2;
+  --line: #2a3943;
+  --accent: #52b8bd;
+  --accent-soft: #143338;
+  --tint: #1a2830;
+  --good: #5cc08a;
+  --warn: #e2a440;
+  --crit: #f07068;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+.shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+}
+header.top {
+  grid-column: 1 / -1;
+  padding: 48px 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(30px, 4.2vw, 44px);
+  line-height: 1.12;
+  margin: 0 0 14px;
+  text-wrap: balance;
+  max-width: 22ch;
+}
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 14px; }
+.meta span strong { color: var(--ink); font-weight: 500; }
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding-top: 32px;
+  font-size: 14px;
+}
+nav.toc p { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: toc; }
+nav.toc li { counter-increment: toc; }
+nav.toc a {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+nav.toc a::before { content: counter(toc, decimal-leading-zero); font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 2px; }
+nav.toc a:hover { background: var(--tint); }
+
+main { padding-top: 32px; min-width: 0; }
+section { padding: 8px 0 40px; border-bottom: 1px solid var(--line); margin-bottom: 36px; scroll-margin-top: 16px; }
+section:last-of-type { border-bottom: 0; }
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+h2 .num { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 500; display: block; margin-bottom: 6px; letter-spacing: .04em; }
+h3 { font-size: 18px; font-weight: 600; margin: 32px 0 8px; }
+p, ul, ol.steps { max-width: 72ch; }
+.lead { font-size: 18px; color: var(--ink); margin: 6px 0 20px; max-width: 70ch; }
+.muted { color: var(--muted); }
+
+.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.card h3 { margin: 0 0 6px; font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); font-weight: 500; }
+.card p { margin: 0; font-size: 15px; }
+
+.note {
+  border-left: 3px solid var(--warn);
+  background: var(--surface);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 14.5px;
+  max-width: 76ch;
+  margin: 18px 0;
+}
+.note strong { color: var(--warn); }
+
+.table-wrap { overflow-x: auto; margin: 16px 0 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; line-height: 1.45; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+thead th { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; background: var(--tint); white-space: nowrap; }
+td:first-child { font-weight: 600; }
+td.plain { font-weight: 400; }
+.num-col { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.chip {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.chip.sync { color: var(--accent); }
+.chip.async { color: var(--muted); }
+.chip.high { color: var(--crit); }
+.chip.med { color: var(--warn); }
+
+figure { margin: 24px 0 8px; }
+figure .canvas { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; }
+figure svg { display: block; width: 100%; height: auto; min-width: 640px; color: var(--ink); }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; max-width: 76ch; }
+
+/* diagram vocabulary, styled from the page tokens */
+.d-box { fill: var(--surface); stroke: var(--muted); stroke-width: 1.25; }
+.d-main { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.d-ext { fill: var(--surface); stroke: var(--muted); stroke-width: 1.25; stroke-dasharray: 5 4; }
+.d-zone { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.d-zone-tint { fill: var(--tint); stroke: var(--line); stroke-width: 1; }
+.d-edge { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+.d-edge.ret { stroke-dasharray: 5 4; }
+.d-edge.async { stroke-dasharray: 2 3; }
+.d-life { stroke: var(--line); stroke-width: 1.25; stroke-dasharray: 4 4; }
+.d-frag { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 6 4; }
+.d-head { fill: var(--muted); }
+.d-gate { fill: var(--accent); }
+.d-axis { stroke: var(--muted); stroke-width: 1.25; fill: none; }
+.t-title { font: 600 15px var(--font-body); fill: var(--ink); }
+.t-name { font: 600 13px var(--font-body); fill: var(--ink); }
+.t-sub { font: 400 11.5px var(--font-body); fill: var(--muted); }
+.t-body { font: 400 12px var(--font-body); fill: var(--ink); }
+.t-lbl { font: 400 11.5px var(--font-body); fill: var(--muted); }
+.t-msg { font: 400 11.5px var(--font-body); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.t-frag { font: 600 11px var(--font-mono); fill: var(--accent); }
+.t-step { font: 500 11px var(--font-mono); fill: var(--accent); }
+
+pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 12px 0 18px;
+}
+code { font-family: var(--font-mono); font-size: .92em; }
+p code, li code, td code { background: var(--tint); padding: 1px 5px; border-radius: 4px; }
+.code-label { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin: 18px 0 -4px; text-transform: uppercase; letter-spacing: .05em; }
+
+ol.steps { padding-left: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
+ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 36px 1fr; gap: 4px; }
+ol.steps > li::before {
+  content: counter(step);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  margin-top: 1px;
+}
+ol.steps strong { font-weight: 600; }
+
+ul.checks { list-style: none; padding: 0; display: grid; gap: 8px; }
+ul.checks li { display: grid; grid-template-columns: 26px 1fr; }
+ul.checks li::before { content: ""; width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; margin-top: 5px; }
+
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sources { font-size: 14px; columns: 2; column-gap: 32px; padding-left: 18px; max-width: none; }
+.sources li { break-inside: avoid; margin-bottom: 6px; }
+
+footer { grid-column: 1 / -1; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 980px) {
+  .shell { grid-template-columns: 1fr; gap: 0; }
+  nav.toc { position: static; padding-top: 20px; }
+  nav.toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .shell { padding: 0 16px 60px; }
+  .summary, .two { grid-template-columns: 1fr; }
+  .sources { columns: 1; }
+  nav.toc ol { grid-template-columns: 1fr; }
+}
+
+/* comparison additions */
+.d-full { fill: var(--surface); stroke: var(--good); stroke-width: 1.5; }
+.d-part { fill: var(--surface); stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.d-gap  { fill: var(--surface); stroke: var(--crit); stroke-width: 1.5; stroke-dasharray: 2 3; }
+.d-colhead { fill: var(--tint); stroke: var(--line); stroke-width: 1; }
+.t-gap { font: 600 13px var(--font-body); fill: var(--crit); }
+.chip.good { color: var(--good); }
+.chip.none { color: var(--crit); }
+.rating { display: inline-flex; gap: 3px; vertical-align: middle; }
+.rating i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--accent); display: inline-block; }
+.rating i.on { background: var(--accent); }
+input.score {
+  width: 64px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--ink); font: 500 14px var(--font-mono); text-align: right;
+}
+input.score:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+tfoot td { font-weight: 600; background: var(--tint); border-top: 1px solid var(--line); }
+.verdict { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+.verdict .card.pick { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+@media (max-width: 760px) { .verdict { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header class="top">
+  <p class="kicker">Vendor decision brief</p>
+  <h1>BioCatch vs NICE Actimize for risk and fraud analysis</h1>
+  <div class="meta">
+    <span><strong>For</strong> Digital banking platform leadership, fraud, BSA/AML and architecture teams</span>
+    <span><strong>Date</strong> 17 Nov 2026</span>
+    <span><strong>Status</strong> Draft for decision</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#summary">Summary and recommendation</a></li>
+    <li><a href="#glance">At a glance</a></li>
+    <li><a href="#capabilities">Capability comparison</a></li>
+    <li><a href="#coverage">Coverage by option</a></li>
+    <li><a href="#requirements">Fit to our requirements</a></li>
+    <li><a href="#integration">Integration and effort</a></li>
+    <li><a href="#vendor">Vendor and commercial risk</a></li>
+    <li><a href="#scorecard">Weighted scorecard</a></li>
+    <li><a href="#decision">Decision path</a></li>
+    <li><a href="#next">Next steps</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="summary">
+  <h2><span class="num">01</span>Summary and recommendation</h2>
+  <p class="lead">BioCatch and NICE Actimize are not like-for-like competitors. BioCatch judges <em>the person in the digital session</em>. Actimize judges <em>the transaction, the customer record and the watch lists</em>, and also runs KYC, sanctions, AML and case management. Which one is "apt" depends mainly on one question: must this purchase also cover KYC, sanctions and AML?</p>
+  <div class="verdict">
+    <div class="card">
+      <h3>Option A · Actimize only</h3>
+      <p>Covers fraud decisions, KYC, sanctions, AML and cases in one platform. Weaker against account takeover with stolen credentials and against scam victims who log in themselves. Months to implement.</p>
+    </div>
+    <div class="card">
+      <h3>Option B · BioCatch only</h3>
+      <p>Best-in-class protection of login and session against takeover and scams, live in weeks. Leaves transaction fraud decisions, KYC, sanctions and AML to other systems.</p>
+    </div>
+    <div class="card pick">
+      <h3>Option C · Both, layered</h3>
+      <p>BioCatch scores the session; Actimize makes the decision and runs compliance. Strongest coverage, highest cost. One Risk Gateway serves both, so engineering is shared.</p>
+    </div>
+  </div>
+  <div class="note"><strong>Recommendation for discussion.</strong> If our new platform needs this purchase to cover KYC, sanctions and AML, Actimize is required and BioCatch is an add-on we should price as one (Option C). If those are already covered by another system, BioCatch plus our own decision rules (Option B) is the faster, lighter choice for login and payment risk. The deciding facts are in <a href="#next">Next steps</a>: what we use for AML today, our fraud loss mix, and both vendors' prices.</div>
+</section>
+
+<section id="glance">
+  <h2><span class="num">02</span>At a glance</h2>
+  <p class="lead">Actimize is a broad financial-crime platform; BioCatch is a specialist in digital behavior. Both are in the middle of an ownership change.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Dimension</th><th>BioCatch</th><th>NICE Actimize</th></tr></thead>
+    <tbody>
+      <tr><td>Category</td><td class="plain">Behavioral biometrics and session intelligence</td><td class="plain">Enterprise fraud management and financial-crime compliance</td></tr>
+      <tr><td>Core question it answers</td><td class="plain">Is the genuine customer at the keyboard, and are they acting freely?</td><td class="plain">Is this transaction, customer or party risky, and what do we do about it?</td></tr>
+      <tr><td>Main evidence</td><td class="plain">Typing, touch, mouse, device handling, device and network signals; more than 3,000 data points per session</td><td class="plain">Transactions across channels and rails, customer and account data, watch lists, device data we send</td></tr>
+      <tr><td>Products</td><td class="plain">Account Takeover Protection, Scams360, Account Opening Protection, Mule Account Detection, DeviceIQ</td><td class="plain">IFM-X (fraud), CDD-X / X-Sight Onboard (KYC), WL-X (screening), SAM (AML), ActOne (cases), Xceed (smaller FIs)</td></tr>
+      <tr><td>Output</td><td class="plain">A session risk score, risk level and reasons on request</td><td class="plain">Decisions, alerts, risk ratings and cases</td></tr>
+      <tr><td>Deployment</td><td class="plain">SaaS</td><td class="plain">X-Sight SaaS on AWS or on-premise</td></tr>
+      <tr><td>Integration shape</td><td class="plain">SDK in web and mobile apps + one scoring API</td><td class="plain">Real-time APIs + data feeds + case workflows</td></tr>
+      <tr><td>Typical time to value</td><td class="plain">Weeks: one bank went live in four weeks (<a href="https://www.biometricupdate.com/202103/challenger-bank-integrates-biocatch-behavioral-biometrics-to-secure-fast-onboarding">Biometric Update</a>)</td><td class="plain">Months, with services often EUR 200k–600k (<a href="https://www.ki-syndikat.de/tools/nice-actimize/">KI-Syndikat</a>, indicative)</td></tr>
+      <tr><td>Customer base</td><td class="plain">About 350 financial institutions in 21 countries (<a href="https://www.electronicpaymentsinternational.com/?p=84816">EPI</a>)</td><td class="plain">More than 1,000 organisations in over 70 countries (<a href="https://securitybrief.co.nz/story/nice-actimize-named-asia-pacific-fraud-management-leader">SecurityBrief</a>)</td></tr>
+      <tr><td>Analyst recognition</td><td class="plain">First in QKS SPARK Matrix 2026 for behavioral biometrics and device intelligence (<a href="https://yespress.io/biocatch.md">yespress</a>)</td><td class="plain">Leader, Forrester Wave Enterprise Fraud Management 2024 and Asia Pacific Q4 2025 (<a href="https://info.niceactimize.com/Forrester-Wave-Enterprise-Fraud-Report.html">NICE</a>)</td></tr>
+      <tr><td>Peer reviews (PeerSpot)</td><td class="plain">Rated 8.0; ranked 5th in Fraud Detection and Prevention</td><td class="plain">Rated 8.2; ranked 1st (<a href="https://www.peerspot.com/products/comparisons/biocatch_vs_nice-actimize-fraud-authentication-management">PeerSpot</a>)</td></tr>
+      <tr><td>Ownership</td><td class="plain">Visa signed to buy for US$2.4B on 3 Aug 2026; close expected Q2 2027 (<a href="https://www.fintechfutures.com/m-a/visa-acquires-biocatch">FinTech Futures</a>)</td><td class="plain">NICE is selling it; Brookfield reported in exclusive talks at about US$2B; sale process still ongoing (<a href="https://www.calcalistech.com/ctechnews/article/ene3z08a2">Calcalist</a>)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="capabilities">
+  <h2><span class="num">03</span>Capability comparison</h2>
+  <p class="lead">BioCatch leads on what happens inside the digital session. Actimize leads on everything after the session: transactions, compliance and investigations.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Capability</th><th>BioCatch</th><th>NICE Actimize</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Account takeover at login</td><td class="plain"><span class="chip good">Strong</span></td><td class="plain"><span class="chip med">Partial</span></td><td class="plain">BioCatch spots a different person even with correct credentials. Actimize relies on device, location and event rules.</td></tr>
+      <tr><td>Takeover during the session</td><td class="plain"><span class="chip good">Strong</span></td><td class="plain"><span class="chip med">Partial</span></td><td class="plain">BioCatch watches continuously; Actimize scores the events we send.</td></tr>
+      <tr><td>Remote access, bots, emulators</td><td class="plain"><span class="chip good">Strong</span></td><td class="plain"><span class="chip med">Partial</span></td><td class="plain">Actimize depends on device data from us or Marketplace partners.</td></tr>
+      <tr><td>Scams (genuine customer coached)</td><td class="plain"><span class="chip good">Strong</span></td><td class="plain"><span class="chip med">Partial</span></td><td class="plain">BioCatch sees an active call, hesitation and coached behavior. Actimize sees unusual payments and payees.</td></tr>
+      <tr><td>Account opening fraud</td><td class="plain"><span class="chip good">Strong</span></td><td class="plain"><span class="chip good">Strong</span></td><td class="plain">BioCatch reads applicant behavior; Actimize New Account Fraud orchestrates identity vendors. Complementary.</td></tr>
+      <tr><td>Transaction fraud across rails</td><td class="plain"><span class="chip none">No</span></td><td class="plain"><span class="chip good">Strong</span></td><td class="plain">BioCatch scores the session, not the payment history.</td></tr>
+      <tr><td>Rules and policy engine</td><td class="plain"><span class="chip med">Partial</span></td><td class="plain"><span class="chip good">Strong</span></td><td class="plain">With BioCatch alone we build decision rules in our Risk Gateway.</td></tr>
+      <tr><td>KYC / CDD risk rating</td><td class="plain"><span class="chip none">No</span></td><td class="plain"><span class="chip good">Strong</span></td><td class="plain">CDD-X or X-Sight Onboard.</td></tr>
+      <tr><td>Sanctions and PEP screening</td><td class="plain"><span class="chip none">No</span></td><td class="plain"><span class="chip good">Strong</span></td><td class="plain">WL-X, real time and batch.</td></tr>
+      <tr><td>AML transaction monitoring</td><td class="plain"><span class="chip med">Partial</span></td><td class="plain"><span class="chip good">Strong</span></td><td class="plain">BioCatch offers mule account detection only; Actimize SAM is full AML monitoring.</td></tr>
+      <tr><td>Case management</td><td class="plain"><span class="chip med">Partial</span></td><td class="plain"><span class="chip good">Strong</span></td><td class="plain">ActOne is an enterprise case manager for fraud, KYC and sanctions alerts.</td></tr>
+      <tr><td>Customer friction</td><td class="plain"><span class="chip good">Low</span></td><td class="plain"><span class="chip med">Depends</span></td><td class="plain">BioCatch collects passively; Actimize friction comes from our step-up and hold policies.</td></tr>
+      <tr><td>Integration effort</td><td class="plain"><span class="chip good">Low</span></td><td class="plain"><span class="chip high">High</span></td><td class="plain">See <a href="#integration">Integration and effort</a>.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">Ratings are our assessment from public product material. Validate them in proofs of value on our own traffic.</p>
+</section>
+
+<section id="coverage">
+  <h2><span class="num">04</span>Coverage by option</h2>
+  <p class="lead">Option B leaves two gaps (transaction decisions and compliance); Option A leaves two weaker areas (session takeover and scams); Option C closes both.</p>
+  <figure>
+    <div class="canvas">
+    <svg viewBox="0 0 940 520" role="img" aria-label="Only the layered option covers every layer; BioCatch alone leaves transaction decisions and compliance as gaps">
+      <text class="t-title" x="24" y="32">Only the layered option covers every layer</text>
+
+      <rect class="d-colhead" x="240" y="52" width="216" height="36" rx="8"/>
+      <text class="t-name" x="348" y="75" text-anchor="middle">A · Actimize only</text>
+      <rect class="d-colhead" x="472" y="52" width="216" height="36" rx="8"/>
+      <text class="t-name" x="580" y="75" text-anchor="middle">B · BioCatch only</text>
+      <rect class="d-main" x="704" y="52" width="216" height="36" rx="8"/>
+      <text class="t-name" x="812" y="75" text-anchor="middle">C · Both, layered</text>
+
+      <text class="t-name" x="24" y="132">Login and session</text>
+      <text class="t-name" x="24" y="196">Scams (coached customer)</text>
+      <text class="t-name" x="24" y="260">Transaction decisions</text>
+      <text class="t-name" x="24" y="324">Account opening fraud</text>
+      <text class="t-name" x="24" y="388">KYC, sanctions, AML</text>
+      <text class="t-name" x="24" y="452">Case management</text>
+
+      <rect class="d-part" x="240" y="100" width="216" height="52" rx="8"/>
+      <text class="t-name" x="252" y="122">IFM-X Digital Banking</text>
+      <text class="t-sub" x="252" y="140">Device and event rules</text>
+      <rect class="d-full" x="472" y="100" width="216" height="52" rx="8"/>
+      <text class="t-name" x="484" y="122">BioCatch ATO Protection</text>
+      <text class="t-sub" x="484" y="140">Behavior, device, remote access</text>
+      <rect class="d-full" x="704" y="100" width="216" height="52" rx="8"/>
+      <text class="t-name" x="716" y="122">BioCatch score to IFM-X</text>
+      <text class="t-sub" x="716" y="140">Behavior inside the decision</text>
+
+      <rect class="d-part" x="240" y="164" width="216" height="52" rx="8"/>
+      <text class="t-name" x="252" y="186">IFM-X scam rules</text>
+      <text class="t-sub" x="252" y="204">Payment patterns only</text>
+      <rect class="d-full" x="472" y="164" width="216" height="52" rx="8"/>
+      <text class="t-name" x="484" y="186">BioCatch Scams360</text>
+      <text class="t-sub" x="484" y="204">Active call, coaching signals</text>
+      <rect class="d-full" x="704" y="164" width="216" height="52" rx="8"/>
+      <text class="t-name" x="716" y="186">Scams360 + IFM-X</text>
+      <text class="t-sub" x="716" y="204">Session and payment evidence</text>
+
+      <rect class="d-full" x="240" y="228" width="216" height="52" rx="8"/>
+      <text class="t-name" x="252" y="250">IFM-X</text>
+      <text class="t-sub" x="252" y="268">All rails, profiles, policies</text>
+      <rect class="d-gap" x="472" y="228" width="216" height="52" rx="8"/>
+      <text class="t-gap" x="484" y="250">Gap: decision engine</text>
+      <text class="t-sub" x="484" y="268">We build rules on the score</text>
+      <rect class="d-full" x="704" y="228" width="216" height="52" rx="8"/>
+      <text class="t-name" x="716" y="250">IFM-X</text>
+      <text class="t-sub" x="716" y="268">BioCatch score as one input</text>
+
+      <rect class="d-full" x="240" y="292" width="216" height="52" rx="8"/>
+      <text class="t-name" x="252" y="314">IFM-X New Account Fraud</text>
+      <text class="t-sub" x="252" y="332">Identity vendor orchestration</text>
+      <rect class="d-part" x="472" y="292" width="216" height="52" rx="8"/>
+      <text class="t-name" x="484" y="314">Account Opening Protection</text>
+      <text class="t-sub" x="484" y="332">Behavior only, no ID proofing</text>
+      <rect class="d-full" x="704" y="292" width="216" height="52" rx="8"/>
+      <text class="t-name" x="716" y="314">AOP + IFM-X NAF</text>
+      <text class="t-sub" x="716" y="332">Behavior plus identity data</text>
+
+      <rect class="d-full" x="240" y="356" width="216" height="52" rx="8"/>
+      <text class="t-name" x="252" y="378">CDD-X, WL-X, SAM</text>
+      <text class="t-sub" x="252" y="396">KYC, screening, monitoring</text>
+      <rect class="d-gap" x="472" y="356" width="216" height="52" rx="8"/>
+      <text class="t-gap" x="484" y="378">Gap: KYC and AML</text>
+      <text class="t-sub" x="484" y="396">Mule detection only</text>
+      <rect class="d-full" x="704" y="356" width="216" height="52" rx="8"/>
+      <text class="t-name" x="716" y="378">CDD-X, WL-X, SAM</text>
+      <text class="t-sub" x="716" y="396">KYC, screening, monitoring</text>
+
+      <rect class="d-full" x="240" y="420" width="216" height="52" rx="8"/>
+      <text class="t-name" x="252" y="442">ActOne</text>
+      <text class="t-sub" x="252" y="460">One queue for all alerts</text>
+      <rect class="d-part" x="472" y="420" width="216" height="52" rx="8"/>
+      <text class="t-name" x="484" y="442">BioCatch analyst tools</text>
+      <text class="t-sub" x="484" y="460">Its own alerts only</text>
+      <rect class="d-full" x="704" y="420" width="216" height="52" rx="8"/>
+      <text class="t-name" x="716" y="442">ActOne</text>
+      <text class="t-sub" x="716" y="460">BioCatch alerts fed in</text>
+
+      <rect class="d-full" x="240" y="494" width="22" height="14" rx="3"/>
+      <text class="t-lbl" x="270" y="505">Strong coverage</text>
+      <rect class="d-part" x="400" y="494" width="22" height="14" rx="3"/>
+      <text class="t-lbl" x="430" y="505">Partial coverage</text>
+      <rect class="d-gap" x="560" y="494" width="22" height="14" rx="3"/>
+      <text class="t-lbl" x="590" y="505">Gap to fill elsewhere</text>
+    </svg>
+    </div>
+    <figcaption>Each row is a layer of risk and fraud analysis. Feeding BioCatch alerts into ActOne in Option C is an integration we would build or ask the vendors about; it is not confirmed as an out-of-the-box connector.</figcaption>
+  </figure>
+</section>
+
+<section id="requirements">
+  <h2><span class="num">05</span>Fit to our requirements</h2>
+  <p class="lead">Our in-house platform replacing Q2 needs login authentication risk, fraud detection and KYC. Mapping those needs to each product shows where each one stops.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Our requirement</th><th>BioCatch</th><th>NICE Actimize</th><th>Best fit</th></tr></thead>
+    <tbody>
+      <tr><td>Risk-based login (step-up only when needed)</td><td class="plain">Session score at login, passive</td><td class="plain">IFM-X login policy on device and event data</td><td class="plain">BioCatch, or both</td></tr>
+      <tr><td>Protect payments (P2P, ACH, wire) from takeover</td><td class="plain">Score at payment time</td><td class="plain">Transaction scoring and holds across rails</td><td class="plain">Both together</td></tr>
+      <tr><td>Stop scam payments by real customers</td><td class="plain">Scams360</td><td class="plain">Payment-pattern rules</td><td class="plain">BioCatch</td></tr>
+      <tr><td>Digital account opening fraud</td><td class="plain">Applicant behavior</td><td class="plain">Identity vendor orchestration</td><td class="plain">Both together</td></tr>
+      <tr><td>KYC risk rating, CDD and EDD</td><td class="plain">Not offered</td><td class="plain">CDD-X / X-Sight Onboard</td><td class="plain">Actimize</td></tr>
+      <tr><td>Sanctions and PEP screening</td><td class="plain">Not offered</td><td class="plain">WL-X</td><td class="plain">Actimize</td></tr>
+      <tr><td>AML monitoring and SAR support</td><td class="plain">Mule detection only</td><td class="plain">SAM + ActOne</td><td class="plain">Actimize</td></tr>
+      <tr><td>One place for analysts to work alerts</td><td class="plain">Its own alerts</td><td class="plain">ActOne for all alerts</td><td class="plain">Actimize</td></tr>
+      <tr><td>Fast delivery for the new platform launch</td><td class="plain">Weeks</td><td class="plain">Months</td><td class="plain">BioCatch</td></tr>
+      <tr><td>Fits our Spring Boot Risk Gateway design</td><td class="plain">One REST scoring call</td><td class="plain">Several APIs plus streams</td><td class="plain">Both fit; BioCatch is simpler</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="integration">
+  <h2><span class="num">06</span>Integration and effort</h2>
+  <p class="lead">BioCatch is mostly front-end work plus one API call. Actimize is mostly back-end data work plus case workflows. Both sit behind the same Risk Gateway.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Work item</th><th>BioCatch</th><th>NICE Actimize</th></tr></thead>
+    <tbody>
+      <tr><td>Web and mobile apps</td><td class="plain">Add JS, iOS and Android SDKs; create and share a session ID; mark screen changes</td><td class="plain">Collect and pass device and session data (or a device vendor)</td></tr>
+      <tr><td>Real-time calls</td><td class="plain">One scoring call (<code>getScore</code>) per decision point</td><td class="plain">Decision calls at account opening, login, risky events and payments</td></tr>
+      <tr><td>Data feeds</td><td class="plain">Confirmed fraud outcomes back to BioCatch</td><td class="plain">Customer and account master, transactions, history backfill, watch lists, outcomes</td></tr>
+      <tr><td>Core integration (Fiserv Premier)</td><td class="plain">Not needed for scoring</td><td class="plain">Needed: customer, account and transaction data from the core</td></tr>
+      <tr><td>Case workflows</td><td class="plain">Light: BioCatch analyst tools or our own queue</td><td class="plain">ActOne queues, outcomes back to our systems, SAR process</td></tr>
+      <tr><td>Learning and tuning</td><td class="plain">Silent period while profiles build, then thresholds</td><td class="plain">Shadow mode on live traffic, then thresholds and policies</td></tr>
+      <tr><td>Partner implementation</td><td class="plain">Usually direct with BioCatch</td><td class="plain">NICE Professional Services or a certified SI</td></tr>
+      <tr><td>Indicative timeline</td><td class="plain">Weeks to a first flow</td><td class="plain">Several months for the full scope</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Both designs share the Risk Gateway (Spring Boot, Resilience4j, one decision audit log). Building it first lets us add either vendor, or both, without touching the channel apps again.</p>
+</section>
+
+<section id="vendor">
+  <h2><span class="num">07</span>Vendor and commercial risk</h2>
+  <p class="lead">Both vendors are changing hands, so contract protections matter for either choice. Neither publishes prices.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Risk area</th><th>BioCatch</th><th>NICE Actimize</th></tr></thead>
+    <tbody>
+      <tr><td>Ownership</td><td class="plain">Being bought by Visa, a strategic buyer, with leadership staying; close expected Q2 2027 subject to approvals</td><td class="plain">Sale under way: Brookfield reported in exclusive talks in Sept 2026 at about US$2B; on its Q3 call NICE gave no update (<a href="https://www.calcalistech.com/ctechnews/article/ene3z08a2">Calcalist</a>)</td></tr>
+      <tr><td>Pricing model</td><td class="plain">Not public; ask whether per session, per user or per product</td><td class="plain">Not public; licence by volume and modules, plus implementation services</td></tr>
+      <tr><td>Privacy and legal</td><td class="plain">Behavioral and biometric data: review state biometric privacy laws and notices</td><td class="plain">Large volumes of customer and transaction data leave our network in SaaS</td></tr>
+      <tr><td>Operational risk</td><td class="plain">Session ID mismatches and SDK start failures reported by users (<a href="https://www.peerspot.com/product_reviews/biocatch-review-124739-by-reviewer1464606">PeerSpot</a>)</td><td class="plain">Complexity, tuning effort and dated UI reported by reviewers (<a href="https://www.rfp.wiki/payments-fraud/fraud-detection/biocatch/nice-actimize">RFP.wiki</a>)</td></tr>
+      <tr><td>Lock-in</td><td class="plain">Low: one score; easy to swap behind the gateway</td><td class="plain">Higher: data model, policies and case workflows are proprietary</td></tr>
+      <tr><td>Model governance</td><td class="plain">Vendor ML; ask for model documentation</td><td class="plain">Vendor ML plus our policies; ask for model documentation</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">Contract asks for either vendor: change-of-control and exit clauses, price protection, data-use limits, scoring SLA and audit rights.</p>
+</section>
+
+<section id="scorecard">
+  <h2><span class="num">08</span>Weighted scorecard</h2>
+  <p class="lead">With our starting weights, Actimize scores slightly higher because it covers compliance; shift weight toward digital takeover and scams and BioCatch pulls ahead. Change the weights and scores below to match the team's priorities; totals update as you type.</p>
+  <div class="table-wrap">
+  <table id="scorecard-table">
+    <thead><tr><th>Criterion</th><th>Weight</th><th>BioCatch (0–5)</th><th>Actimize (0–5)</th><th>Why these scores</th></tr></thead>
+    <tbody>
+      <tr><td>Account takeover at login and in session</td><td><input class="score" id="w1" type="number" min="0" max="100" value="20" aria-label="Weight: account takeover"></td><td><input class="score" id="b1" type="number" min="0" max="5" value="5" aria-label="BioCatch score: account takeover"></td><td><input class="score" id="a1" type="number" min="0" max="5" value="3" aria-label="Actimize score: account takeover"></td><td class="plain">Behavioral biometrics is BioCatch's core</td></tr>
+      <tr><td>Scam (coached customer) detection</td><td><input class="score" id="w2" type="number" min="0" max="100" value="15" aria-label="Weight: scams"></td><td><input class="score" id="b2" type="number" min="0" max="5" value="5" aria-label="BioCatch score: scams"></td><td><input class="score" id="a2" type="number" min="0" max="5" value="3" aria-label="Actimize score: scams"></td><td class="plain">Scams360 sees in-session coaching</td></tr>
+      <tr><td>Transaction fraud decisions across rails</td><td><input class="score" id="w3" type="number" min="0" max="100" value="15" aria-label="Weight: transaction fraud"></td><td><input class="score" id="b3" type="number" min="0" max="5" value="2" aria-label="BioCatch score: transaction fraud"></td><td><input class="score" id="a3" type="number" min="0" max="5" value="5" aria-label="Actimize score: transaction fraud"></td><td class="plain">IFM-X is a full decision engine</td></tr>
+      <tr><td>KYC, CDD and sanctions screening</td><td><input class="score" id="w4" type="number" min="0" max="100" value="15" aria-label="Weight: KYC and sanctions"></td><td><input class="score" id="b4" type="number" min="0" max="5" value="0" aria-label="BioCatch score: KYC and sanctions"></td><td><input class="score" id="a4" type="number" min="0" max="5" value="5" aria-label="Actimize score: KYC and sanctions"></td><td class="plain">Not in BioCatch's scope</td></tr>
+      <tr><td>AML monitoring and case management</td><td><input class="score" id="w5" type="number" min="0" max="100" value="10" aria-label="Weight: AML and cases"></td><td><input class="score" id="b5" type="number" min="0" max="5" value="1" aria-label="BioCatch score: AML and cases"></td><td><input class="score" id="a5" type="number" min="0" max="5" value="5" aria-label="Actimize score: AML and cases"></td><td class="plain">BioCatch: mule detection only</td></tr>
+      <tr><td>Time to value and integration effort</td><td><input class="score" id="w6" type="number" min="0" max="100" value="10" aria-label="Weight: time to value"></td><td><input class="score" id="b6" type="number" min="0" max="5" value="5" aria-label="BioCatch score: time to value"></td><td><input class="score" id="a6" type="number" min="0" max="5" value="2" aria-label="Actimize score: time to value"></td><td class="plain">Weeks vs months</td></tr>
+      <tr><td>Customer friction</td><td><input class="score" id="w7" type="number" min="0" max="100" value="5" aria-label="Weight: friction"></td><td><input class="score" id="b7" type="number" min="0" max="5" value="5" aria-label="BioCatch score: friction"></td><td><input class="score" id="a7" type="number" min="0" max="5" value="3" aria-label="Actimize score: friction"></td><td class="plain">Passive collection vs rule-driven step-ups</td></tr>
+      <tr><td>Vendor stability</td><td><input class="score" id="w8" type="number" min="0" max="100" value="5" aria-label="Weight: vendor stability"></td><td><input class="score" id="b8" type="number" min="0" max="5" value="4" aria-label="BioCatch score: vendor stability"></td><td><input class="score" id="a8" type="number" min="0" max="5" value="3" aria-label="Actimize score: vendor stability"></td><td class="plain">Strategic buyer vs sale still open</td></tr>
+      <tr><td>Total cost</td><td><input class="score" id="w9" type="number" min="0" max="100" value="5" aria-label="Weight: cost"></td><td><input class="score" id="b9" type="number" min="0" max="5" value="3" aria-label="BioCatch score: cost"></td><td><input class="score" id="a9" type="number" min="0" max="5" value="3" aria-label="Actimize score: cost"></td><td class="plain">Placeholder until we have quotes</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td>Weighted total</td><td id="w-total" class="num-col">100</td><td id="b-total" class="num-col">–</td><td id="a-total" class="num-col">–</td><td id="leader" class="plain">–</td></tr>
+    </tfoot>
+  </table>
+  </div>
+  <p class="muted">Starting weights and scores are our draft for discussion, not vendor data. Weighted total = sum of (weight × score) ÷ (sum of weights × 5), shown as a percentage.</p>
+</section>
+
+<section id="decision">
+  <h2><span class="num">09</span>Decision path</h2>
+  <p class="lead">Two questions decide the option: whether this purchase must cover compliance, and whether digital takeover and scams drive our losses.</p>
+  <figure>
+    <div class="canvas">
+    <svg viewBox="0 0 940 300" role="img" aria-label="If the purchase must cover KYC, sanctions and AML, Actimize is required; BioCatch is added when digital takeover and scams drive losses">
+      <defs><marker id="dec-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="d-head" d="M0 0L10 5L0 10z"/></marker></defs>
+      <path class="d-edge" d="M264 152H302V72H340" marker-end="url(#dec-arrow)"/>
+      <path class="d-edge" d="M264 152H302V248H340" marker-end="url(#dec-arrow)"/>
+      <path class="d-edge" d="M600 72H638V44H676" marker-end="url(#dec-arrow)"/>
+      <path class="d-edge" d="M600 72H638V124H676" marker-end="url(#dec-arrow)"/>
+
+      <rect class="d-box" x="24" y="120" width="240" height="64" rx="8"/>
+      <text class="t-name" x="36" y="146">Must this purchase cover</text>
+      <text class="t-name" x="36" y="164">KYC, sanctions and AML?</text>
+
+      <rect class="d-box" x="340" y="40" width="260" height="64" rx="8"/>
+      <text class="t-name" x="352" y="66">Do digital takeover and scams</text>
+      <text class="t-name" x="352" y="84">drive a large share of losses?</text>
+
+      <rect class="d-main" x="676" y="16" width="240" height="56" rx="8"/>
+      <text class="t-name" x="688" y="40">Option C: both, layered</text>
+      <text class="t-sub" x="688" y="58">Actimize decides, BioCatch scores</text>
+
+      <rect class="d-box" x="676" y="96" width="240" height="56" rx="8"/>
+      <text class="t-name" x="688" y="120">Option A: Actimize only</text>
+      <text class="t-sub" x="688" y="138">Accept weaker session cover</text>
+
+      <rect class="d-box" x="340" y="216" width="260" height="64" rx="8"/>
+      <text class="t-name" x="352" y="242">Option B: BioCatch only</text>
+      <text class="t-sub" x="352" y="262">Plus our own rules; KYC/AML elsewhere</text>
+
+      <text class="t-lbl" x="310" y="112">yes</text>
+      <text class="t-lbl" x="310" y="208">no</text>
+      <text class="t-lbl" x="646" y="36">yes</text>
+      <text class="t-lbl" x="646" y="112">no</text>
+    </svg>
+    </div>
+    <figcaption>If we choose Option B now, Option C stays open later: the Risk Gateway can add Actimize without changing the channel apps.</figcaption>
+  </figure>
+</section>
+
+<section id="next">
+  <h2><span class="num">10</span>Next steps</h2>
+  <p class="lead">Four facts settle the decision; a short proof of value from each vendor confirms it.</p>
+  <ul class="checks">
+    <li><span><strong>Current compliance stack.</strong> What do we use today for AML monitoring, sanctions screening and KYC, and is it staying after the move off Q2?</span></li>
+    <li><span><strong>Fraud loss mix.</strong> Share of losses from account takeover, scams, account opening and other payment fraud over the last 12 months.</span></li>
+    <li><span><strong>Quotes.</strong> Prices from both vendors for our volumes, including Actimize implementation services and BioCatch per-session or per-user terms.</span></li>
+    <li><span><strong>Ownership terms.</strong> What each vendor commits to after its sale: roadmap, support, price and data use.</span></li>
+    <li><span><strong>Proofs of value.</strong> BioCatch in silent mode on a share of our web and mobile traffic; Actimize scoring a replay of historical transactions with known fraud.</span></li>
+    <li><span><strong>Legal review.</strong> Biometric privacy for BioCatch; data residency and processing terms for both.</span></li>
+    <li><span><strong>Build the Risk Gateway first.</strong> It is needed for either option and keeps the vendor choice reversible.</span></li>
+  </ul>
+  <p class="muted">Detailed integration designs for each vendor are in the separate NICE Actimize and BioCatch reports.</p>
+</section>
+
+<section id="sources">
+  <h2><span class="num">11</span>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://www.biocatch.com/behavioral-biometrics">BioCatch: Platform overview</a></li>
+    <li><a href="https://www.biocatch.com/account-takeover-protection">BioCatch: Account Takeover Protection</a></li>
+    <li><a href="https://www.biocatch.com/who-we-serve/fraud-strategy-operations">BioCatch: Solutions</a></li>
+    <li><a href="https://www.fintechfutures.com/m-a/visa-acquires-biocatch">FinTech Futures: Visa to acquire BioCatch</a></li>
+    <li><a href="https://www.electronicpaymentsinternational.com/?p=84816">Electronic Payments International: Visa to buy BioCatch</a></li>
+    <li><a href="https://yespress.io/biocatch.md">yespress: BioCatch profile</a></li>
+    <li><a href="https://www.biometricupdate.com/202103/challenger-bank-integrates-biocatch-behavioral-biometrics-to-secure-fast-onboarding">Biometric Update: Bank deploys BioCatch in four weeks</a></li>
+    <li><a href="https://www.peerspot.com/product_reviews/biocatch-review-124739-by-reviewer1464606">PeerSpot: BioCatch user review</a></li>
+    <li><a href="https://www.niceactimize.com/press-releases/nice-actimize-announces-next-gen-fraud-management-platform-leveraging-advanced-ai-and-the-cloud-to-fight-fraud-and-enhance-customer-experience-338">NICE Actimize: IFM-X</a></li>
+    <li><a href="https://www.niceactimize.com/anti-money-laundering/sanctions-screening">NICE Actimize: WL-X</a></li>
+    <li><a href="https://www.celent.com/solutions/756720821">Celent: CDD-X</a></li>
+    <li><a href="https://info.niceactimize.com/Forrester-Wave-Enterprise-Fraud-Report.html">NICE Actimize: Forrester Wave Enterprise Fraud</a></li>
+    <li><a href="https://securitybrief.co.nz/story/nice-actimize-named-asia-pacific-fraud-management-leader">SecurityBrief: Actimize named APAC leader</a></li>
+    <li><a href="https://www.ki-syndikat.de/tools/nice-actimize/">KI-Syndikat: NICE Actimize review and costs</a></li>
+    <li><a href="https://www.calcalistech.com/ctechnews/article/ene3z08a2">Calcalist: Actimize sale process ongoing</a></li>
+    <li><a href="https://www.calcalistech.com/ctechnews/article/iazqvedg2">Calcalist: Brookfield exclusive talks for Actimize</a></li>
+    <li><a href="https://www.peerspot.com/products/comparisons/biocatch_vs_nice-actimize-fraud-authentication-management">PeerSpot: BioCatch vs NICE Actimize</a></li>
+    <li><a href="https://www.rfp.wiki/payments-fraud/fraud-detection/biocatch/nice-actimize">RFP.wiki: BioCatch vs NICE Actimize</a></li>
+  </ul>
+</section>
+
+</main>
+
+<footer>Prepared 17 Nov 2026 from public vendor materials, analyst and peer reviews, and press coverage. Capability ratings and scorecard values are our assessment for discussion. Confirm capabilities, prices and ownership terms with both vendors before deciding.</footer>
+</div>
+
+<script>
+(function () {
+  var rows = 9;
+  function val(id) { var n = parseFloat(document.getElementById(id).value); return isNaN(n) ? 0 : n; }
+  function update() {
+    var wSum = 0, b = 0, a = 0;
+    for (var i = 1; i <= rows; i++) {
+      var w = Math.max(0, val('w' + i));
+      wSum += w;
+      b += w * Math.min(5, Math.max(0, val('b' + i)));
+      a += w * Math.min(5, Math.max(0, val('a' + i)));
+    }
+    var bp = wSum ? Math.round(b / (wSum * 5) * 100) : 0;
+    var ap = wSum ? Math.round(a / (wSum * 5) * 100) : 0;
+    document.getElementById('w-total').textContent = wSum;
+    document.getElementById('b-total').textContent = bp + '%';
+    document.getElementById('a-total').textContent = ap + '%';
+    document.getElementById('leader').textContent =
+      bp === ap ? 'Tied' : (bp > ap ? 'BioCatch ahead by ' + (bp - ap) + ' pts' : 'Actimize ahead by ' + (ap - bp) + ' pts');
+  }
+  document.getElementById('scorecard-table').addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>
