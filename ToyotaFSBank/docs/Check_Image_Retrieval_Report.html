@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check Image Retrieval</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1b2330;--muted:#5d6878;--line:#dde2e8;--soft:#eef1f5;--accent:#1f4e8c;--accent-ink:#fff;--code:#f2f4f7;
+--ok:#d5efdb;--ok-b:#3c8a50;--warn:#fff0bf;--warn-b:#a88600;--bad:#f8d4c6;--bad-b:#b5583a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11151b;--card:#19202a;--ink:#e5eaf0;--muted:#99a5b3;--line:#2c3542;--soft:#202835;--accent:#7fb0ff;--accent-ink:#0d1320;--code:#151b23;
+--ok:#1e4a2b;--ok-b:#5fbf7a;--warn:#4f4318;--warn-b:#e0c04e;--bad:#5a2d21;--bad-b:#ef8d6c}}
+:root[data-theme="dark"]{--bg:#11151b;--card:#19202a;--ink:#e5eaf0;--muted:#99a5b3;--line:#2c3542;--soft:#202835;--accent:#7fb0ff;--accent-ink:#0d1320;--code:#151b23;
+--ok:#1e4a2b;--ok-b:#5fbf7a;--warn:#4f4318;--warn-b:#e0c04e;--bad:#5a2d21;--bad-b:#ef8d6c}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:28px;max-width:1240px;margin:0 auto;padding:24px 16px 64px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}aside{position:static!important}}
+aside{position:sticky;top:16px;align-self:start}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.toc b{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.toc a{display:block;padding:5px 8px;margin:2px 0;border-radius:6px;color:var(--ink);text-decoration:none;font-size:14px}
+.toc a.on{background:var(--soft);color:var(--accent);font-weight:600}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.btn{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+h1{font-size:28px;margin:0 0 4px;line-height:1.2}
+.sub{color:var(--muted);margin:0 0 18px}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px;scroll-margin-top:14px}
+h2{font-size:20px;margin:0 0 10px;color:var(--accent)}
+h3{font-size:16px;margin:18px 0 6px}
+p{margin:6px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:8px}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg)}
+.card b{display:block;margin-bottom:4px}
+.card span{color:var(--muted);font-size:14px}
+code{overflow-wrap:anywhere;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;background:var(--code);padding:1px 5px;border-radius:4px}
+pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;background:var(--code);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;margin:0}
+.codewrap{position:relative;margin:8px 0}
+.codewrap .btn{position:absolute;top:6px;right:6px;font-size:11px;padding:2px 8px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--soft);font-size:13px}
+.dgbox{border:1px solid var(--line);border-radius:10px;background:var(--bg);margin:10px 0}
+.dgbar{display:flex;gap:6px;justify-content:flex-end;padding:6px 8px;border-bottom:1px solid var(--line)}
+.dgbar span{margin-right:auto;font-size:13px;color:var(--muted);align-self:center}
+.dg{padding:12px;overflow-x:auto;text-align:center}
+.dg svg{max-width:100%;height:auto}
+.src{display:none;padding:0 12px 12px}
+.src.show{display:block}
+.steps{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.steps>li{counter-increment:s;position:relative;padding:10px 12px 10px 48px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--bg)}
+.steps>li::before{content:counter(s);position:absolute;left:12px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px}
+details{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;background:var(--card)}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid}
+.ok{background:var(--ok);border-color:var(--ok-b)}.warn{background:var(--warn);border-color:var(--warn-b)}.bad{background:var(--bad);border-color:var(--bad-b)}
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:10px 12px;border-radius:0 8px 8px 0;margin:10px 0}
+.oq li{margin:6px 0}.oq label{cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.show{display:flex}
+.modal .inner{background:var(--card);border-radius:12px;max-width:96vw;max-height:92vh;overflow:auto;padding:14px;position:relative;width:1200px}
+.modal .inner svg{max-width:none!important;width:100%;height:auto}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:7px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+.toast.show{opacity:1}
+footer{color:var(--muted);font-size:13px}
+@media print{aside,.dgbar,.codewrap .btn{display:none}.layout{display:block}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <nav class="toc" id="toc">
+    <b>Contents</b>
+    <a href="#summary">Summary</a>
+    <a href="#terms">Key terms</a>
+    <a href="#ids">ID chain</a>
+    <a href="#api">Check fetch API</a>
+    <a href="#options">Options compared</a>
+    <a href="#sso">SSO explained</a>
+    <a href="#cif">CIF explained</a>
+    <a href="#build">Build guidance</a>
+    <a href="#questions">Questions for Fiserv</a>
+    <a href="#sources">Sources and status</a>
+    <div class="tools">
+      <button class="btn" id="theme">Theme: auto</button>
+      <button class="btn" id="expand">Expand all</button>
+      <button class="btn" onclick="print()">Print</button>
+    </div>
+  </nav>
+</aside>
+<main>
+<h1>Check image retrieval from Fiserv</h1>
+<p class="sub">How the in-house online banking platform can fetch check images from Fiserv once Q2 is retired: the IDs involved, the API calls, the SSO alternative, and what to confirm with Fiserv. Premier core · Banking Hub ESF swagger 11.0.0 (2026.4.1).</p>
+
+<section id="summary"><h2>Summary</h2>
+<div class="cards">
+  <div class="card"><b>Recommended path</b><span>Banking Hub API: transaction history gives the image IDs, DocumentService returns the image. Images show inside our own UI.</span></div>
+  <div class="card"><b>Fallback</b><span>SSO to Fiserv's ITI Director viewer, as Q2 does today. Our platform replaces Q2 as the trusted sender.</span></div>
+  <div class="card"><b>Deposit items</b><span>Need the separate TransQuery → tranlist service. Not in the Banking Hub swagger; spec required from Fiserv.</span></div>
+  <div class="card"><b>Status</b><span>Mapped from the swagger and Postman collection. Not yet tested in cert.</span></div>
+</div>
+<div class="callout"><b>First test:</b> call transaction history on a DDA account that has checks and confirm <code>ImageInd</code> and <code>TrnImageId</code> come back. Then try that ID as a <code>DocumentId</code> in DocumentService.</div>
+</section>
+
+<section id="terms"><h2>Key terms</h2>
+<div class="tw"><table>
+<tr><th>Term</th><th>Meaning</th><th>Fiserv field</th></tr>
+<tr><td><b>CIF</b></td><td>Customer Information File — the bank's master record for one customer, and its unique ID on the Fiserv platform.</td><td><code>PartyKeys.PartyId</code></td></tr>
+<tr><td><b>Party</b></td><td>Fiserv's API name for a customer (person or organization).</td><td>PartyService</td></tr>
+<tr><td><b>SSO</b></td><td>Single sign-on — a logged-in user opens Fiserv's viewer without logging in again, because our platform sends a signed token Fiserv trusts.</td><td>Not a Banking Hub API</td></tr>
+<tr><td><b>Account keys</b></td><td>Identify one account on the core.</td><td><code>AcctKeys.AcctId</code>, <code>AcctType</code></td></tr>
+<tr><td><b>Check number</b></td><td>Number printed on the check.</td><td><code>Checks.ChkNum</code></td></tr>
+<tr><td><b>Image indicator</b></td><td>True when the transaction has an image.</td><td><code>ImageInd</code></td></tr>
+<tr><td><b>Image IDs</b></td><td>Link a transaction to its front and back images.</td><td><code>TrnImageId</code>, <code>TrnImageBackId</code></td></tr>
+<tr><td><b>Document ID</b></td><td>Key of a document or image in DocumentService.</td><td><code>DocumentKeys.DocumentId</code></td></tr>
+<tr><td><b>TrnId</b></td><td>Unique GUID we send in <code>EFXHeader</code> on every call, for tracing.</td><td><code>EFXHeader.TrnId</code></td></tr>
+</table></div>
+</section>
+
+<section id="ids"><h2>ID chain: from login to image</h2>
+<p>Each call returns the ID the next call needs. Example values are illustrative (CIF and account taken from the Postman collection samples).</p>
+<div class="dgbox" data-id="d2"><div class="dgbar"><span>ID chain</span><button class="btn zoom">Full screen</button><button class="btn tsrc">Mermaid source</button><button class="btn csrc">Copy source</button></div><div class="dg"><p class="sub">Rendering…</p></div><div class="src"><pre></pre></div></div>
+</section>
+
+<section id="api"><h2>Check fetch API: end to end</h2>
+<p>Full sequence with the ID passed at each step. Steps are numbered in the diagram and matched below.</p>
+<div class="dgbox" data-id="d1"><div class="dgbar"><span>Check fetch API — sequence with IDs</span><button class="btn zoom">Full screen</button><button class="btn tsrc">Mermaid source</button><button class="btn csrc">Copy source</button></div><div class="dg"><p class="sub">Rendering…</p></div><div class="src"><pre></pre></div></div>
+<h3>Step by step</h3>
+<ol class="steps">
+<li><b>Get a token</b> — <code>POST https://bankinghub-cert.fiservapis.com/fts-apim/oauth2/v2</code> with <code>grant_type=client_credentials</code> and Basic auth. Use the <code>access_token</code> as Bearer on every call, plus <code>EFXHeader</code> with <code>OrganizationId</code> and a new <code>TrnId</code>.
+<div class="codewrap"><button class="btn cp">Copy</button><pre>EFXHeader: {"OrganizationId":"&lt;orgId&gt;","TrnId":"&lt;new GUID&gt;"}
+Authorization: Bearer &lt;access_token&gt;</pre></div></li>
+<li><b>Resolve the user's accounts from the CIF</b> — <code>POST {{HostName}}/partyacctrelservice/partyacctrel/partyacctrel/secured</code>
+<div class="codewrap"><button class="btn cp">Copy</button><pre>{
+  "RecCtrlIn": { "MaxRecLimit": 50 },
+  "PartyAcctRelSel": {
+    "PartyKeys": { "PartyId": "3323585" },
+    "ExcludeClosedAcctInd": true
+  }
+}</pre></div>Keep the returned <code>AcctId</code> / <code>AcctType</code> pairs — they are the accounts this user may see.</li>
+<li><b>Get transaction history with image IDs</b> — <code>POST {{HostName}}/accttranservice/acctmgmt/acctTrn/secured</code>
+<div class="codewrap"><button class="btn cp">Copy</button><pre>{
+  "RecCtrlIn": { "MaxRecLimit": 50 },
+  "AcctTrnSel": {
+    "AcctKeys": { "AcctId": "8282016372", "AcctType": "DDA" },
+    "DtRange": { "StartDt": "2026-10-01", "EndDt": "2026-10-31" }
+  }
+}</pre></div>From each <code>AcctTrnRec[].AcctTrnInfo</code> read <code>Checks.ChkNum</code>, <code>ImageInd</code>, <code>TrnImageId</code>, <code>TrnImageBackId</code>. Show a "View check" icon only where <code>ImageInd</code> is true.</li>
+<li><b>Authorize the request</b> — when the user clicks a check, confirm the account belongs to their CIF (from step 2) before fetching anything. Image IDs must never be accepted from the browser without this check.</li>
+<li><b>Download the front image</b> — <code>POST /document/secured/download</code> <span class="pill warn">prefix unconfirmed</span>
+<div class="codewrap"><button class="btn cp">Copy</button><pre>{
+  "DocumentSel": {
+    "DocumentKeys": { "DocumentId": "&lt;TrnImageId&gt;" },
+    "PageRequested": [ { "PageNum": 1, "PageFormat": "PNG", "View": "Front" } ]
+  }
+}</pre></div>Response is the image file (<code>application/octet-stream</code>). <code>View</code> can be <code>Front</code>, <code>Back</code> or <code>FrontBack</code>; <code>PageFormat</code> can be PNG, JPG, TIFF, PDF, BMP.</li>
+<li><b>Download the back image</b> — same call with <code>DocumentId</code> = <code>TrnImageBackId</code> and <code>View: "Back"</code>, or one call with <code>FrontBack</code>.</li>
+<li><b>Return to the UI</b> — stream the bytes through our backend; never expose Fiserv URLs or tokens to the browser.</li>
+</ol>
+<details><summary>If TrnImageId is not accepted as a DocumentId</summary>
+<p>Search by keywords, then download the <code>DocumentId</code> the search returns. Keyword names are bank-configured — read them first with <code>POST /document/config/secured</code>. <code>Operand</code> values are not listed in the swagger; <code>EQ</code> is a guess.</p>
+<div class="codewrap"><button class="btn cp">Copy</button><pre>POST /document/list/secured
+{
+  "DocumentListSel": {
+    "KeywordSel": [
+      { "Keyword": "Account Number", "KeywordValue": "8282016372", "Operand": "EQ" },
+      { "Keyword": "Check Number",   "KeywordValue": "1042",       "Operand": "EQ" }
+    ]
+  }
+}</pre></div></details>
+<details><summary>JSON alternative to the file download</summary>
+<p><code>POST /document/secured</code> takes the same body and returns <code>DocumentRec[].DocumentInfo.PageData[]</code> with <code>PageNum</code>, <code>PageFormat</code>, <code>View</code> and <code>PageValue</code>. <code>PageValue</code> is probably base64; the swagger doesn't say.</p></details>
+<details><summary>Errors to expect</summary>
+<div class="tw"><table><tr><th>Status</th><th>Likely cause</th><th>Action</th></tr>
+<tr><td><code>1090 Invalid Value</code> (ESF)</td><td>Bad header or field value — e.g. extra <code>VendorId</code> in <code>EFXHeader</code></td><td>Send only <code>OrganizationId</code> and <code>TrnId</code></td></tr>
+<tr><td><code>1121 No Records Found</code></td><td>No image or wrong ID</td><td>Show "Image not available"</td></tr>
+<tr><td>401 / 403</td><td>Token expired or service not enabled for our org</td><td>Refresh token; ask Fiserv to enable DocumentService</td></tr>
+<tr><td>Timeout / 5xx</td><td>Fiserv or archive unavailable</td><td>Circuit breaker; friendly message; retry later (reads are safe to retry)</td></tr>
+</table></div></details>
+</section>
+
+<section id="options"><h2>Options compared</h2>
+<div class="dgbox" data-id="d3"><div class="dgbar"><span>Choosing a retrieval option</span><button class="btn zoom">Full screen</button><button class="btn tsrc">Mermaid source</button><button class="btn csrc">Copy source</button></div><div class="dg"><p class="sub">Rendering…</p></div><div class="src"><pre></pre></div></div>
+<div class="tw"><table>
+<tr><th></th><th>1. Banking Hub API</th><th>2. SSO to ITI Director</th><th>3. TransQuery → tranlist</th></tr>
+<tr><td>Where the image appears</td><td>Our UI</td><td>Fiserv's viewer (new window or iframe)</td><td>Our UI</td></tr>
+<tr><td>Covers</td><td>Checks; statements if stored there</td><td>Checks and deposit items</td><td>Deposit items</td></tr>
+<tr><td>Spec available</td><td><span class="pill ok">Swagger</span></td><td><span class="pill warn">Need SSO spec</span></td><td><span class="pill bad">Not in swagger</span></td></tr>
+<tr><td>Build effort</td><td>Medium</td><td>Low (plus SSO set-up)</td><td>Medium to high</td></tr>
+<tr><td>Main risk</td><td>Archive may not be connected to DocumentService</td><td>User leaves our UI; new trust set-up with Fiserv</td><td>Separate product and contract</td></tr>
+</table></div>
+<p>Fiserv Director is Fiserv's document and image management suite for Premier and includes a check imaging module. DocumentService's fields (document types, keywords, disk groups, revisions) look like that kind of system, so DocumentService may be the API in front of Director — Fiserv needs to confirm.</p>
+</section>
+
+<section id="sso"><h2>SSO explained</h2>
+<p>SSO lets a customer who is already logged into online banking open Fiserv's check viewer without logging in again. Our platform vouches for the user with a short-lived signed token; Fiserv verifies the signature with a key we registered.</p>
+<div class="dgbox" data-id="d4"><div class="dgbar"><span>SSO hand-off</span><button class="btn zoom">Full screen</button><button class="btn tsrc">Mermaid source</button><button class="btn csrc">Copy source</button></div><div class="dg"><p class="sub">Rendering…</p></div><div class="src"><pre></pre></div></div>
+<div class="tw"><table>
+<tr><th>Role</th><th>Today</th><th>After Q2</th></tr>
+<tr><td>Identity provider — logs the user in, signs the token</td><td>Q2</td><td>Our platform</td></tr>
+<tr><td>Service provider — trusts the token, shows the image</td><td>Fiserv ITI Director / MSI</td><td>Same</td></tr>
+</table></div>
+<ul>
+<li><b>Token formats:</b> usually SAML 2.0, OIDC/JWT, or a Fiserv-specific signed post — Fiserv decides.</li>
+<li><b>Token content:</b> typically CIF, account and check or item reference, plus a short expiry.</li>
+<li><b>Not the same as API auth:</b> Banking Hub calls are server to server with OAuth client credentials. SSO moves the user's browser to Fiserv's screen.</li>
+</ul>
+</section>
+
+<section id="cif"><h2>CIF explained</h2>
+<p>CIF (Customer Information File) is the bank's master record for one customer. One customer has one CIF and can own many accounts; a joint account links two CIFs to one account. On Fiserv Premier the CIF is <code>PartyKeys.PartyId</code>, and it is the unique customer identifier on the platform.</p>
+<div class="dgbox" data-id="d5"><div class="dgbar"><span>CIF data model</span><button class="btn zoom">Full screen</button><button class="btn tsrc">Mermaid source</button><button class="btn csrc">Copy source</button></div><div class="dg"><p class="sub">Rendering…</p></div><div class="src"><pre></pre></div></div>
+<ul>
+<li><b>Holds:</b> identity (name, date of birth, SSN/tax ID, ID documents), contact details, customer type and flags, and links to every account.</li>
+<li><b>Lookup:</b> <code>POST {{HostName}}/partyservice/parties/parties/secured</code> with <code>{"PartySel":{"PartyKeys":{"PartyId":"&lt;CIF&gt;"}}}</code>.</li>
+<li><b>SSN only verifies:</b> fetch by CIF, then check <code>TaxIdent</code> matches. One SSN can match several parties (for example a person and their business).</li>
+<li><b>In our platform:</b> the username maps to a primary CIF at login; everything else — visible accounts, allowed images, the SSO token — hangs off it.</li>
+<li><b>"External CIF":</b> probably an ID used outside the core (Q2 or OLB customer ID) linked to the internal CIF. Confirm with Fiserv and Q2.</li>
+</ul>
+</section>
+
+<section id="build"><h2>Build guidance</h2>
+<div class="cards">
+  <div class="card"><b>Authorize every image</b><span>Check the account belongs to the user's CIF before fetching. Image IDs can be guessed.</span></div>
+  <div class="card"><b>Fetch on demand</b><span>Call DocumentService only when a user opens a check, not when history loads.</span></div>
+  <div class="card"><b>Cache briefly</b><span>Cache images per session for a short time; never store them long-term without a retention decision.</span></div>
+  <div class="card"><b>Proxy through backend</b><span>Stream bytes through our server. No Fiserv URLs, tokens or IDs that bypass our checks reach the browser.</span></div>
+  <div class="card"><b>Trace every call</b><span>Log <code>TrnId</code>, account (masked) and outcome. Never log SSNs or image content.</span></div>
+  <div class="card"><b>Fail gracefully</b><span>Circuit breaker around DocumentService so image outages don't affect balances or history.</span></div>
+</div>
+</section>
+
+<section id="questions"><h2>Questions for Fiserv</h2>
+<p>Tick as answered — saved in this browser only.</p>
+<ol class="oq" id="oq">
+<li>Which archive holds TFS's check and deposit images: Director, National Image Archive or Image Content Manager?</li>
+<li>Is that archive available through Banking Hub DocumentService for TFS? What is the full URL, and is it in cert with test images?</li>
+<li>Is <code>TrnImageId</code> from transaction history the <code>DocumentId</code> for DocumentService, or must we search by keywords?</li>
+<li>Which keyword names and <code>Operand</code> values does TFS's archive use?</li>
+<li>How are deposit item images retrieved: TransQuery, DocumentService or Director? Where is the spec?</li>
+<li>For SSO: which format (SAML, OIDC/JWT, signed post), which fields, token lifetime, and how do we register our signing certificate?</li>
+<li>Can the ITI Director viewer be embedded in our page, or must it open in a new window?</li>
+<li>Are there licence fees for image API calls or viewer access? What is the expected response time for an image?</li>
+</ol>
+</section>
+
+<section id="sources"><h2>Sources and status</h2>
+<ul>
+<li>ESF swagger release 11.0.0.2026.4.1 — AcctTrnService (<code>ImageInd</code>, <code>TrnImageId</code>, <code>TrnImageBackId</code>, <code>Checks</code>) and DocumentService v11/v12.</li>
+<li>Premier Banking Hub Postman collection R2026.3.3 — confirmed <code>{{HostName}}</code> paths.</li>
+<li><a href="https://www.fiserv.com/en/solutions/enterprise-content-management/director.html">Fiserv Director</a> · <a href="https://www.fiserv.com/en/solutions/deposit-solutions/national-image-archive.html">National Image Archive</a> · <a href="https://www.fiserv.com/en/solutions/processing-services/image-content-manager.html">Image Content Manager</a></li>
+</ul>
+<p><code>{{HostName}}</code> = <code>https://bankinghub-cert.fiservapis.com/banking/efx/v1</code>. DocumentService paths come from the swagger only; their Banking Hub prefix is unconfirmed. None of these calls has been run against cert.</p>
+</section>
+<footer>Diagrams render with Mermaid loaded from jsDelivr (needs internet). Without it, each diagram shows its source text.</footer>
+</main>
+</div>
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="inner"><button class="btn" id="mclose" style="position:sticky;top:0;float:right">Close</button><div id="mbody"></div></div></div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+const D={"d1": "sequenceDiagram\n  autonumber\n  actor U as Customer\n  participant UI as OLB UI\n  participant BE as Our backend\n  participant T as Token endpoint\n  participant P as PartyAcctRelService\n  participant A as AcctTrnService\n  participant D as DocumentService\n  U->>UI: Log in as jdoe\n  UI->>BE: Session for username jdoe\n  Note over BE: Look up primary CIF for jdoe<br/>CIF = PartyId 3323585\n  BE->>T: POST oauth2/v2 client_credentials\n  T-->>BE: access_token\n  BE->>P: partyacctrel/secured<br/>PartyKeys.PartyId = 3323585\n  P-->>BE: AcctId 8282016372, AcctType DDA\n  U->>UI: Open account history\n  UI->>BE: GET history for 8282016372\n  BE->>A: acctTrn/secured<br/>AcctKeys 8282016372 DDA, DtRange\n  A-->>BE: AcctTrnRec[] with ChkNum 1042,<br/>ImageInd true, TrnImageId, TrnImageBackId\n  BE-->>UI: History rows, image icon where ImageInd = true\n  U->>UI: Click View check 1042\n  UI->>BE: GET image for account 8282016372, check 1042\n  Note over BE: Verify account 8282016372 belongs to CIF 3323585\n  BE->>D: document/secured/download<br/>DocumentId = TrnImageId, View Front\n  D-->>BE: Front image bytes\n  BE->>D: document/secured/download<br/>DocumentId = TrnImageBackId, View Back\n  D-->>BE: Back image bytes\n  BE-->>UI: Front and back images\n  UI-->>U: Display check 1042\n", "d2": "flowchart LR\n  A[\"Username<br/>jdoe\"] -->|\"login mapping<br/>our platform\"| B[\"CIF<br/>PartyKeys.PartyId<br/>3323585\"]\n  B -->|\"PartyAcctRelService\"| C[\"Account<br/>AcctKeys.AcctId 8282016372<br/>AcctType DDA\"]\n  C -->|\"AcctTrnService<br/>DtRange\"| E[\"Check transaction<br/>Checks.ChkNum 1042<br/>ImageInd true\"]\n  E --> F[\"TrnImageId<br/>front\"]\n  E --> G[\"TrnImageBackId<br/>back\"]\n  F -->|\"DocumentKeys.DocumentId\"| H[\"DocumentService<br/>download View Front\"]\n  G -->|\"DocumentKeys.DocumentId\"| I[\"DocumentService<br/>download View Back\"]\n  H --> J[\"Image bytes<br/>PNG / JPG / TIFF\"]\n  I --> J\n", "d3": "flowchart TD\n  S[\"Customer clicks View check\"] --> Q{\"How will TFS images be served?\"}\n  Q -->|\"API, image shown in our UI\"| O1[\"Option 1: Banking Hub<br/>AcctTrnService then DocumentService\"]\n  Q -->|\"Link out to Fiserv viewer\"| O2[\"Option 2: SSO to ITI Director\"]\n  Q -->|\"Items inside a deposit\"| O3[\"Option 3: TransQuery then tranlist<br/>separate Fiserv spec\"]\n  O1 --> K1{\"TrnImageId works as DocumentId?\"}\n  K1 -->|Yes| DL[\"document/secured/download\"]\n  K1 -->|No| KS[\"document/list/secured<br/>KeywordSel Account Number + Check Number\"]\n  KS --> DL\n", "d4": "sequenceDiagram\n  actor U as Customer\n  participant OLB as Our OLB platform\n  participant F as Fiserv ITI Director\n  U->>OLB: Already logged in, clicks View check\n  OLB->>OLB: Build short-lived signed token<br/>CIF, account, check number\n  OLB-->>U: Redirect or auto-post to Fiserv\n  U->>F: Token\n  F->>F: Verify signature with our registered key,<br/>check expiry\n  F-->>U: Check image viewer, no second login\n", "d5": "erDiagram\n  ONLINE_USER }o--|| CIF : \"maps to primary\"\n  CIF ||--o{ PARTY_ACCT_REL : \"has\"\n  ACCOUNT ||--o{ PARTY_ACCT_REL : \"has\"\n  ACCOUNT ||--o{ TRANSACTION : \"posts\"\n  TRANSACTION ||--o| CHECK_IMAGE : \"may have\"\n  ONLINE_USER { string username }\n  CIF { string PartyId \"unique on Fiserv\" string TaxIdent \"verifies only\" }\n  PARTY_ACCT_REL { string PartyAcctRelType \"Owner, Signer\" }\n  ACCOUNT { string AcctId string AcctType }\n  TRANSACTION { string ChkNum boolean ImageInd }\n  CHECK_IMAGE { string TrnImageId string TrnImageBackId }\n"};
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem("ckimg."+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("ckimg."+k,JSON.stringify(v))}catch(e){}}};
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1300)}
+async function copy(t){try{await navigator.clipboard.writeText(t);toast("Copied")}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("Copied")}catch(_){toast("Copy failed")}a.remove()}}
+document.querySelectorAll(".cp").forEach(b=>b.onclick=()=>copy(b.nextElementSibling.textContent));
+/* diagrams */
+document.querySelectorAll(".dgbox").forEach(box=>{
+ const id=box.dataset.id;box.querySelector(".src pre").textContent=D[id];
+ box.querySelector(".tsrc").onclick=()=>box.querySelector(".src").classList.toggle("show");
+ box.querySelector(".csrc").onclick=()=>copy(D[id]);
+ box.querySelector(".zoom").onclick=()=>{$("#mbody").innerHTML=box.querySelector(".dg").innerHTML;$("#modal").classList.add("show")};
+});
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show")};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#modal").classList.remove("show")});
+let theme=store.get("theme","auto");let n=0;
+function dark(){return theme==="dark"||(theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches)}
+async function renderAll(){
+ document.querySelectorAll(".dgbox").forEach(async box=>{const el=box.querySelector(".dg");
+  if(!window.mermaid){el.innerHTML='<pre>'+esc(D[box.dataset.id])+'</pre>';return}
+  try{const {svg}=await mermaid.render("mm"+(++n),D[box.dataset.id]);el.innerHTML=svg}catch(e){el.innerHTML='<pre>'+esc(D[box.dataset.id])+'</pre>'}});
+}
+function applyTheme(){if(theme==="auto")delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;$("#theme").textContent="Theme: "+theme;
+ if(window.mermaid)mermaid.initialize({startOnLoad:false,theme:dark()?"dark":"default",securityLevel:"strict",sequence:{showSequenceNumbers:true}});renderAll()}
+$("#theme").onclick=()=>{theme={auto:"light",light:"dark",dark:"auto"}[theme];store.set("theme",theme);applyTheme()};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(theme==="auto")applyTheme()});
+/* expand */
+let ex=false;$("#expand").onclick=()=>{ex=!ex;document.querySelectorAll("details").forEach(d=>d.open=ex);$("#expand").textContent=ex?"Collapse all":"Expand all"};
+/* questions */
+const done=new Set(store.get("oq",[]));
+document.querySelectorAll("#oq li").forEach((li,i)=>{const h=li.innerHTML;li.innerHTML=`<label><input type="checkbox" ${done.has(i)?"checked":""}> ${h}</label>`;li.querySelector("input").onchange=e=>{e.target.checked?done.add(i):done.delete(i);store.set("oq",[...done])}});
+/* scrollspy */
+const links=[...document.querySelectorAll(".toc a")];
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+e.target.id))}}),{rootMargin:"-30% 0px -60% 0px"});
+document.querySelectorAll("main section").forEach(s=>obs.observe(s));
+applyTheme();
+</script>
+</body>
+</html>
