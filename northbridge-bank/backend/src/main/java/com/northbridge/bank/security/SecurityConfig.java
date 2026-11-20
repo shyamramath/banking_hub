@@ -4,6 +4,7 @@ import com.northbridge.bank.config.BankProperties;
 import java.util.Collection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,7 +30,26 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * Documentation only - no business data flows through these paths. Kept in its own chain
+     * (not the strict {@code apiSecurity} one) because Swagger UI needs to load its own
+     * same-origin JS/CSS, which the API chain's locked-down CSP would block.
+     * Restrict or disable this (springdoc.api-docs.enabled=false) before a real production deploy.
+     */
     @Bean
+    @Order(1)
+    SecurityFilterChain docsSecurity(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .headers(h -> h.frameOptions(f -> f.deny()));
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
         http
             // Stateless bearer-token API. CSRF is enforced at the BFF, where the cookie lives.
